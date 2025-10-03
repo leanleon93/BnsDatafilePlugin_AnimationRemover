@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <enabled value="true" />
+  <profiles>
+    <profile name="1">
+      <extra_options hideTree="false" hideTD="false" hideTaxi="false" hideItemSkills="false" hideSoulCores="true" />
+      <text>Only WL</text>
+      <effect_options />
+      <swap_options />
+      <effect_swap_options />
+      <skill_options>
+        <option name="Blade Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Kung Fu Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Force Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Destroyer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Assassin" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Summoner" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Blade Dancer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Warlock" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Soul Fighter" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Gunslinger" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Warden" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Zen Archer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Astromancer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Dual Blade" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Musician" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+      </skill_options>
+    </profile>
+    <profile name="2">
+      <extra_options hideTree="false" hideTD="false" hideTaxi="false" hideItemSkills="false" hideSoulCores="true" />
+      <text>Only BD</text>
+      <effect_options />
+      <swap_options>
+        <option targetSkillId="165100" animationSkillId="165130" animationSkillVariation="1" />
+        <option targetSkillId="165101" animationSkillId="165131" animationSkillVariation="1" />
+        <option targetSkillId="165491" animationSkillId="165495" animationSkillVariation="1" />
+        <option targetSkillId="165102" animationSkillId="165132" animationSkillVariation="1" />
+        <option targetSkillId="165103" animationSkillId="165133" animationSkillVariation="1" />
+        <option targetSkillId="165104" animationSkillId="165134" animationSkillVariation="1" />
+      </swap_options>
+      <effect_swap_options />
+      <skill_options>
+        <option name="Blade Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Kung Fu Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Force Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Destroyer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Assassin" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Summoner" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Blade Dancer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Warlock" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Soul Fighter" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Gunslinger" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Warden" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Zen Archer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Astromancer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Dual Blade" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Musician" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+      </skill_options>
+    </profile>
+    <profile name="3">
+      <extra_options hideTree="false" hideTD="false" hideTaxi="false" hideItemSkills="false" hideSoulCores="false" />
+      <text>Show Everything</text>
+      <effect_options>
+        <option isAlias="false" key="59301115" />
+      </effect_options>
+      <swap_options>
+        <option targetSkillId="172244" animationSkillId="172283" animationSkillVariation="1" />
+        <option targetSkillId="172025" animationSkillId="172030" animationSkillVariation="1" />
+        <option targetSkillId="172245" animationSkillId="172284" animationSkillVariation="1" />
+        <option targetSkillId="172024" animationSkillId="172029" animationSkillVariation="1" />
+        <option targetSkillId="171193" animationSkillId="172281" animationSkillVariation="1" />
+        <option targetSkillId="172026" animationSkillId="172031" animationSkillVariation="1" />
+        <option targetSkillId="172027" animationSkillId="172032" animationSkillVariation="1" />
+      </swap_options>
+      <effect_swap_options>
+        <option targetEffectId="59301104" animationEffectId="59087834" />
+      </effect_swap_options>
+      <skill_options>
+        <option name="Blade Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Kung Fu Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Force Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Destroyer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Assassin" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Summoner" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Blade Dancer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Warlock" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Soul Fighter" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Gunslinger" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Warden" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Zen Archer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Astromancer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Dual Blade" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Musician" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+      </skill_options>
+    </profile>
+    <profile name="4">
+      <extra_options hideTree="true" hideTD="true" hideTaxi="true" hideItemSkills="true" hideSoulCores="true" />
+      <text>Hide Everything</text>
+      <effect_options />
+      <swap_options />
+      <effect_swap_options />
+      <skill_options>
+        <option name="Blade Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Kung Fu Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Force Master" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Destroyer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Assassin" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Summoner" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Blade Dancer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Warlock" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Soul Fighter" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Gunslinger" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Warden" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Zen Archer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Astromancer" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Dual Blade" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+        <option name="Musician" hideSpec1="true" hideSpec2="true" hideSpec3="true" />
+      </skill_options>
+    </profile>
+    <profile name="5">
+      <extra_options hideTree="false" hideTD="false" hideTaxi="false" hideItemSkills="false" hideSoulCores="false" />
+      <text>Anim Swap Tests</text>
+      <effect_options />
+      <swap_options>
+        <option targetSkillId="171000" animationSkillId="172277" animationSkillVariation="1" />
+      </swap_options>
+      <effect_swap_options />
+      <skill_options>
+        <option name="Blade Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Kung Fu Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Force Master" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Destroyer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Assassin" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Summoner" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Blade Dancer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Warlock" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Soul Fighter" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Gunslinger" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Warden" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Zen Archer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Astromancer" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Dual Blade" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+        <option name="Musician" hideSpec1="false" hideSpec2="false" hideSpec3="false" />
+      </skill_options>
+    </profile>
+  </profiles>
+</config>
