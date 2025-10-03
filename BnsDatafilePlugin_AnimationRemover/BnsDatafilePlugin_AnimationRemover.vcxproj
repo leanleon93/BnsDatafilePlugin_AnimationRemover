@@ -73,12 +73,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>..\..\BnsPlugin_DatafilePluginloader\BnsPlugin;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\BnsPlugin_DatafilePluginloader\BnsPlugin;.\deps\BnsPluginTables\Generated\include;.\deps;$(IncludePath)</IncludePath>
+    <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>..\..\BnsPlugin_DatafilePluginloader\BnsPlugin;$(IncludePath)</IncludePath>
+    <IncludePath>..\..\BnsPlugin_DatafilePluginloader\BnsPlugin;.\deps\BnsPluginTables\Generated\include;.\deps;$(IncludePath)</IncludePath>
+    <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,7 +112,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_BNSEU</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_BNSEU;_SKILLSWAP</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -127,7 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_BNSEU</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_BNSEU;_SKILLSWAP</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -141,6 +143,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AnimationRemover.cpp" />
+    <ClCompile Include="deps\pugixml\pugixml.cpp" />
+    <ClCompile Include="PluginConfig.cpp" />
+    <ClCompile Include="SkillIdManager.cpp" />
+    <ClCompile Include="SkillTraitJobstyleHelper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AnimFilterConfig.h" />
+    <ClInclude Include="PluginConfig.h" />
+    <ClInclude Include="SkillIdManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
