@@ -8,7 +8,7 @@
 
 ## Features
 - Show/hide skills for specific classes/specializations.
-- Up to 5 profiles.
+- Preset Profiles
 - Reload/switch profiles during gameplay.
 - Does not hide party buffs or party protection skills. (Soulburn, Polarity, Uplift, HMB, Stealth proc.)
 - Does not hide Bard tree by default. Can be hidden in config.
@@ -18,6 +18,7 @@
 ## Config
 - The config file must be located at: `Documents/BNS/animfilter_config.xml`
 - Please check the example config file for the correct format: [animfilter_config.xml](animfilter_config.xml)
+- You can add multiple profiles for different scenarios
 - The profiles can also be edited in-game using the pluginloader gui
 
 ## Extra options
