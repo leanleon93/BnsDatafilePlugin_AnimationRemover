@@ -1,0 +1,3 @@
+[submodule "BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables"]
+	path = BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables
+	url = https://github.com/leanleon93/BnsPluginTables
