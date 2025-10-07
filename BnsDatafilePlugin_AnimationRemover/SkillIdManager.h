@@ -9,6 +9,7 @@
 #include "KR/skill_trait/AAA_skill_trait_RecordBase.h"
 #include "EU/effect/AAA_effect_RecordBase.h"
 #include "KR/effect/AAA_effect_RecordBase.h"
+#include <atomic>
 
 class SkillIdManager {
 	struct SkillIdsForJob {
@@ -26,10 +27,11 @@ public:
 		SetupComplete(false),
 		CriticalFail(false)
 	{
-		Setup();
+		// User has to call SetupAsync
 	}
 	__int16 GetSkillshowTableId() const;
 	bool Setup();
+	void SetupAsync();
 	bool IsSetupComplete() const;
 	bool IsCriticalFail() const;
 	void ResetIdsToFilter();
@@ -55,7 +57,7 @@ public:
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;
-	bool SetupComplete;
+	std::atomic<bool> SetupComplete;
 	bool CriticalFail;
 	const std::vector<int> idExclusionList = {
 		66104,

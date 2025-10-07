@@ -174,7 +174,7 @@ static void SwapAnimationsForRecords(BnsTables::KR::skillshow3_Record* record1, 
 static bool reloadRequired = false;
 static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params) {
 	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
-	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile()) {
+	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile() || !g_SkillIdManager->IsSetupComplete()) {
 		return {};
 	}
 	const auto& ids = g_SkillIdManager->GetIdsToFilter();
@@ -282,7 +282,7 @@ inline static std::wstring StringToWString(const std::string& str) {
 	return wstrTo;
 }
 
-inline std::vector<const char*> ToCStringVector(const std::vector<std::string>& strings) {
+inline static std::vector<const char*> ToCStringVector(const std::vector<std::string>& strings) {
 	std::vector<const char*> cstrs;
 	cstrs.reserve(strings.size());
 	for (const auto& s : strings) {
@@ -416,7 +416,10 @@ static void UiPanel(void* userData) {
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Critical error in SkillIdManager! Plugin may not work correctly.");
 		g_imgui->Spacing();
 	}
-
+	if (!g_SkillIdManager->IsSetupComplete()) {
+		g_imgui->TextColored(1.0f, 1.0f, 0.0f, 1.0f, "SkillIdManager setup in progress, please wait...");
+		return;
+	}
 	//enabled checkbox
 	bool enabled = g_PluginConfig->AnimFilterEnabled();
 	if (g_imgui->Checkbox("Enable", &enabled)) {
@@ -500,6 +503,7 @@ static void __fastcall Init(PluginInitParams* params) {
 	if (params && params->dataManager) {
 		g_dataManager = params->dataManager;
 		g_SkillIdManager = std::make_unique<SkillIdManager>(params->dataManager);
+		g_SkillIdManager->SetupAsync();
 	}
 }
 

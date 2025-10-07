@@ -1,5 +1,6 @@
 #include "SkillIdManager.h"
 #include <algorithm>
+#include <thread>
 #include "EU/job/AAA_job_RecordBase.h"
 #include "EU/text/AAA_text_RecordBase.h"
 #include "EU/skill_inheritance/AAA_skill_inheritance_RecordBase.h"
@@ -672,7 +673,7 @@ bool SkillIdManager::Setup() {
 		if (!success2) return false;
 		auto success3 = SetupSkillShowTableId();
 		if (success1 && success2 && success3) {
-			SetupComplete = true;
+			SetupComplete.store(true);
 			ResetIdsToFilter();
 			ReapplyEffectFilters();
 		}
@@ -692,6 +693,10 @@ bool SkillIdManager::Setup() {
 #endif
 		return false;
 	}
+}
+
+void SkillIdManager::SetupAsync() {
+	std::thread([this]() { this->Setup(); }).detach();
 }
 
 Data::DataManager* SkillIdManager::GetDataManager() {
@@ -882,7 +887,7 @@ void SkillIdManager::SetDataManager(Data::DataManager * ptr) {
 }
 
 bool SkillIdManager::IsSetupComplete() const {
-	return SetupComplete;
+	return SetupComplete.load();
 }
 
 const std::unordered_set<int>& SkillIdManager::GetIdsToFilter() const {
