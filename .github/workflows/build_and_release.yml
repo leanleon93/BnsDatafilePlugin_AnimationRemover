@@ -50,7 +50,12 @@ jobs:
         fi
         echo "Latest tag: $TAG"
         VER=${TAG#v}
-        IFS='.' read -r MAJOR MINOR PATCH <<< "$VER"
+        echo "Version string: $VER"
+        echo "$VER" | IFS='.' read -r MAJOR MINOR PATCH
+        if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+          echo "Failed to parse version!"
+          exit 1
+        fi
         PATCH=$((PATCH + 1))
         NEW_TAG="v$MAJOR.$MINOR.$PATCH"
         NEW_VER="$MAJOR.$MINOR.$PATCH"
@@ -60,7 +65,7 @@ jobs:
 
     - name: Update PLUGIN_VERSION in plugin_version.h
       run: |
-        sed -i 's/#define PLUGIN_VERSION "[0-9.]*"/#define PLUGIN_VERSION "<new_version>"/' BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        sed -i 's/#define PLUGIN_VERSION "[0-9.]*"/#define PLUGIN_VERSION "${{ steps.get_version.outputs.new_version }}"/' BnsDatafilePlugin_AnimationRemover/plugin_version.h
         git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
         git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
         git push
@@ -81,9 +86,7 @@ jobs:
 
     - name: Find built DLL
       id: find_dll
-      run: |
-        DLL_PATH=$(find . -name "AnimationFilter.dll" | head -1)
-        echo "dll_path=$DLL_PATH" >> $GITHUB_OUTPUT
+      run: echo "dll_path=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
       shell: bash
       
     - name: Create GitHub Release
