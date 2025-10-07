@@ -10,15 +10,6 @@ on:
       - '.gitignore'
       - '.gitattributes'
       - '.github/**'
-  pull_request:
-    branches: [ "master" ]
-    paths-ignore:
-      - '.github/actions/**'
-      - 'README.md'
-      - 'README.*'
-      - '.gitignore'
-      - '.gitattributes'
-      - '.github/**'
   workflow_dispatch:
     inputs:
       bump:
