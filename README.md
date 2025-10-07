@@ -2,7 +2,7 @@
 
 ## A Blade & Soul NEO datafile plugin to show/hide the skills for specific classes/specializations to provide a cleaner screen in combat without hiding party members.
 
-## Ingame Gui Example
+## Ingame Gui
 
 <img src="./ingame_gui.png" alt="AnimeFilter Ingame GUI" width="800"/>
 
