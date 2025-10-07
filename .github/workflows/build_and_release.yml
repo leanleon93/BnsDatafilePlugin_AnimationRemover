@@ -1,8 +1,3 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: MSBuild
 
 on:
@@ -13,12 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: .
-
-  # Configuration type to build.
-  # You can convert this to a build matrix if you need coverage of multiple configuration types.
-  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
   BUILD_CONFIGURATION: Release
 
 permissions:
@@ -31,10 +21,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          submodules: recursive
-          fetch-depth: 0
-          
+        token: ${{ secrets.GITHUB_TOKEN }}
+        submodules: recursive
+        fetch-depth: 0
+
     - name: Set up Git identity
       run: |
         git config user.name "github-actions[bot]"
@@ -43,22 +33,29 @@ jobs:
     - name: Get latest version
       id: get_version
       run: |
+        set -x  # Enable script debugging
+        echo "[DEBUG] All tags:"
         git fetch --tags
+        git tag --list
         TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+        echo "[DEBUG] TAG='$TAG'"
         if [ -z "$TAG" ]; then
+          echo "[DEBUG] No matching tag found, using v1.0.0"
           TAG="v1.0.0"
         fi
-        echo "Latest tag: $TAG"
+        echo "[DEBUG] Latest tag: $TAG"
         VER=${TAG#v}
-        echo "Version string: $VER"
+        echo "[DEBUG] Version string: $VER"
         echo "$VER" | IFS='.' read -r MAJOR MINOR PATCH
+        echo "[DEBUG] Parsed: MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
         if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
-          echo "Failed to parse version!"
+          echo "[ERROR] Failed to parse version! VER='$VER' MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
           exit 1
         fi
         PATCH=$((PATCH + 1))
         NEW_TAG="v$MAJOR.$MINOR.$PATCH"
         NEW_VER="$MAJOR.$MINOR.$PATCH"
+        echo "[DEBUG] new_tag=$NEW_TAG new_version=$NEW_VER"
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
       shell: bash
@@ -66,29 +63,38 @@ jobs:
     - name: Update PLUGIN_VERSION in plugin_version.h
       run: |
         sed -i 's/#define PLUGIN_VERSION "[0-9.]*"/#define PLUGIN_VERSION "${{ steps.get_version.outputs.new_version }}"/' BnsDatafilePlugin_AnimationRemover/plugin_version.h
-        git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
-        git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
-        git push
-        
-    - name: Create new tag
-      run: |
-        git tag ${{ steps.get_version.outputs.new_tag }}
-        git push origin ${{ steps.get_version.outputs.new_tag }}
-          
+      shell: bash
+
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
-          
+
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
 
-    - name: Find built DLL
+    - name: Verify DLL built
+      id: verify_dll
+      run: |
+        if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" ]; then
+          echo "DLL not found! Build failed or wrong path."
+          exit 1
+        fi
+      shell: bash
+
+    - name: Commit, tag, and push version bump
+      run: |
+        git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
+        git tag ${{ steps.get_version.outputs.new_tag }}
+        git push
+        git push origin ${{ steps.get_version.outputs.new_tag }}
+      shell: bash
+
+    - name: Set DLL path output
       id: find_dll
       run: echo "dll_path=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
       shell: bash
-      
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
