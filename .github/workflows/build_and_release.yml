@@ -3,10 +3,34 @@ name: MSBuild
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/actions/**'
+      - 'README.md'
+      - 'README.*'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/**'
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - '.github/actions/**'
+      - 'README.md'
+      - 'README.*'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/**'
   workflow_dispatch:
-
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: false
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        
 env:
   SOLUTION_FILE_PATH: .
   BUILD_CONFIGURATION: Release
@@ -30,46 +54,36 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    - name: Get latest version
-      id: get_version
+    - name: Calculate next version
+      id: versioning
+      shell: bash
       run: |
-        set -x
-        echo "[DEBUG] All tags:"
         git fetch --tags
-        git tag --list
-        
-        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
-        TAG=$(echo "$TAG" | tr -d '[:space:]')
-        echo "[DEBUG] TAG='$TAG'"
-        
+        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 | tr -d '[:space:]')
         if [ -z "$TAG" ]; then
-          echo "[DEBUG] No matching tag found, using v1.0.0"
-          TAG="v1.0.0"
-          VER="1.0.0"
-          MAJOR=1
-          MINOR=0
-          PATCH=0
+          MAJOR=1; MINOR=0; PATCH=0
         else
-          echo "[DEBUG] Latest tag: $TAG"
           VER=${TAG#v}
-          echo "[DEBUG] Version string: $VER"
         IFS='.' read -r MAJOR MINOR PATCH <<EOF
         $VER
         EOF
-          echo "[DEBUG] Parsed: MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
           if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
-            echo "[ERROR] Failed to parse version! VER='$VER' MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
+            echo "Failed to parse version! VER='$VER'"
             exit 1
           fi
         fi
-        
-        PATCH=$((PATCH + 1))
+        BUMP="${{ github.event.inputs.bump || 'patch' }}"
+        if [ "$BUMP" = "major" ]; then
+          MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+        elif [ "$BUMP" = "minor" ]; then
+          MINOR=$((MINOR + 1)); PATCH=0
+        else
+          PATCH=$((PATCH + 1))
+        fi
         NEW_TAG="v$MAJOR.$MINOR.$PATCH"
         NEW_VER="$MAJOR.$MINOR.$PATCH"
-        echo "[DEBUG] new_tag=$NEW_TAG new_version=$NEW_VER"
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
-      shell: bash
 
     - name: Update PLUGIN_VERSION in plugin_version.h
       run: |
@@ -107,12 +121,27 @@ jobs:
       id: find_dll
       run: echo "dll_path=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
       shell: bash
-
+      
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -2 | tail -1 || true)
+        if [ -z "$PREV_TAG" ]; then
+          git log --oneline > release_notes.txt
+        else
+          git log --oneline "$PREV_TAG"..HEAD > release_notes.txt
+        fi
+        echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+        cat release_notes.txt >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+      shell: bash
+      
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.get_version.outputs.new_tag }}
         name: Release ${{ steps.get_version.outputs.new_tag }}
+        body: ${{ env.RELEASE_BODY }}
         files: ${{ steps.find_dll.outputs.dll_path }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
