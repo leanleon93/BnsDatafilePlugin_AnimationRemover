@@ -59,7 +59,9 @@ jobs:
       shell: bash
       run: |
         git fetch --tags
-        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 | tr -d '[:space:]')
+        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+        TAG=$(echo "$TAG" | tr -d '[:space:]')
+        echo "[DEBUG] TAG='$TAG'"
         if [ -z "$TAG" ]; then
           MAJOR=1; MINOR=0; PATCH=0
         else
@@ -82,6 +84,7 @@ jobs:
         fi
         NEW_TAG="v$MAJOR.$MINOR.$PATCH"
         NEW_VER="$MAJOR.$MINOR.$PATCH"
+        echo "[DEBUG] new_tag=$NEW_TAG new_version=$NEW_VER"
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
         echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
 
