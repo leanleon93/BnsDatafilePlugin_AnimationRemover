@@ -1,0 +1,96 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: MSBuild
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: .
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          fetch-depth: 0
+          
+    - name: Set up Git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Get latest version
+      id: get_version
+      run: |
+        git fetch --tags
+        TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+        if [ -z "$TAG" ]; then
+          TAG="v1.0.0"
+        fi
+        echo "Latest tag: $TAG"
+        VER=${TAG#v}
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VER"
+        PATCH=$((PATCH + 1))
+        NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+        NEW_VER="$MAJOR.$MINOR.$PATCH"
+        echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+        echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Update PLUGIN_VERSION in plugin_version.h
+      run: |
+        sed -i 's/#define PLUGIN_VERSION "[0-9.]*"/#define PLUGIN_VERSION "<new_version>"/' BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
+        git push
+        
+    - name: Create new tag
+      run: |
+        git tag ${{ steps.get_version.outputs.new_tag }}
+        git push origin ${{ steps.get_version.outputs.new_tag }}
+          
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+          
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Find built DLL
+      id: find_dll
+      run: |
+        DLL_PATH=$(find . -name "AnimationFilter.dll" | head -1)
+        echo "dll_path=$DLL_PATH" >> $GITHUB_OUTPUT
+      shell: bash
+      
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ steps.get_version.outputs.new_tag }}
+        name: Release ${{ steps.get_version.outputs.new_tag }}
+        files: ${{ steps.find_dll.outputs.dll_path }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
