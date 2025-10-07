@@ -39,6 +39,7 @@ jobs:
         git tag --list
         
         TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+        TAG=$(echo "$TAG" | tr -d '[:space:]')
         echo "[DEBUG] TAG='$TAG'"
         
         if [ -z "$TAG" ]; then
