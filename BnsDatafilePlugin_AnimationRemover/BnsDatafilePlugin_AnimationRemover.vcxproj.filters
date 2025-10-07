@@ -41,5 +41,8 @@
     <ClInclude Include="SkillIdManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="plugin_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

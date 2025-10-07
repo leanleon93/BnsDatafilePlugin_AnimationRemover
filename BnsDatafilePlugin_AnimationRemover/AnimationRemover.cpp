@@ -4,6 +4,7 @@
 #include <EU/BnsTableNames.h>
 #include <EU/skillshow3/AAA_skillshow3_RecordBase.h>
 #include <string>
+#include "plugin_version.h"
 
 static int g_panelHandle = 0;
 static int g_panelHandle2 = 0;
@@ -465,7 +466,7 @@ static void UiPanel(void* userData) {
 	}
 
 	if (window_open) {
-		g_imgui->Begin("Animation Filter Profile Editor", &window_open);
+		g_imgui->Begin("Animation Filter Profile Editor", &window_open, 0);
 		ProfileEditorUiPanel(nullptr);
 		g_imgui->End();
 	}
@@ -490,7 +491,7 @@ static void __fastcall Init(PluginInitParams* params) {
 		g_register = params->registerImGuiPanel;
 		g_unregister = params->unregisterImGuiPanel;
 		ImGuiPanelDesc desc = { "Animation Filter", UiPanel, nullptr };
-		g_panelHandle = g_register(&desc);
+		g_panelHandle = g_register(&desc, false);
 		/*ImGuiPanelDesc desc2 = { "Animation Filter Profile Editor", ProfileEditorUiPanel, nullptr };
 		g_panelHandle2 = g_register(&desc2);*/
 	}
@@ -519,6 +520,6 @@ PluginTableHandler handlers[] = {
 
 DEFINE_PLUGIN_API_VERSION()
 DEFINE_PLUGIN_IDENTIFIER("AnimationFilter")
-DEFINE_PLUGIN_VERSION("1.0.1")
+DEFINE_PLUGIN_VERSION(PLUGIN_VERSION)
 DEFINE_PLUGIN_INIT(Init, Unregister)
 DEFINE_PLUGIN_TABLE_HANDLERS(handlers)

@@ -1,3 +1,8 @@
 [submodule "BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables"]
 	path = BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables
 	url = https://github.com/leanleon93/BnsPluginTables
+	branch = main
+[submodule "BnsDatafilePlugin_AnimationRemover/deps/DatafilePluginSdk"]
+	path = BnsDatafilePlugin_AnimationRemover/deps/DatafilePluginSdk
+	url = https://github.com/leanleon93/BnsPlugin_DatafilePluginLoader
+	branch = minimal-sdk-headers
