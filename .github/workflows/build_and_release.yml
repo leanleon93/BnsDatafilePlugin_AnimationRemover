@@ -55,7 +55,7 @@ jobs:
         git config user.email "github-actions[bot]@users.noreply.github.com"
 
     - name: Calculate next version
-      id: versioning
+      id: get_version
       shell: bash
       run: |
         git fetch --tags
