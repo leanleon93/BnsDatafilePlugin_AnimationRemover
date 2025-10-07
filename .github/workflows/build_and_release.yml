@@ -37,21 +37,30 @@ jobs:
         echo "[DEBUG] All tags:"
         git fetch --tags
         git tag --list
+        
         TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
         echo "[DEBUG] TAG='$TAG'"
+        
         if [ -z "$TAG" ]; then
           echo "[DEBUG] No matching tag found, using v1.0.0"
           TAG="v1.0.0"
+          VER="1.0.0"
+          MAJOR=1
+          MINOR=0
+          PATCH=0
+        else
+          echo "[DEBUG] Latest tag: $TAG"
+          VER=${TAG#v}
+          echo "[DEBUG] Version string: $VER"
+          # Use echo+read for better compatibility
+          echo "$VER" | IFS='.' read -r MAJOR MINOR PATCH
+          echo "[DEBUG] Parsed: MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
+          if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+            echo "[ERROR] Failed to parse version! VER='$VER' MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
+            exit 1
+          fi
         fi
-        echo "[DEBUG] Latest tag: $TAG"
-        VER=${TAG#v}
-        echo "[DEBUG] Version string: $VER"
-        echo "$VER" | IFS='.' read -r MAJOR MINOR PATCH
-        echo "[DEBUG] Parsed: MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
-        if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
-          echo "[ERROR] Failed to parse version! VER='$VER' MAJOR='$MAJOR' MINOR='$MINOR' PATCH='$PATCH'"
-          exit 1
-        fi
+        
         PATCH=$((PATCH + 1))
         NEW_TAG="v$MAJOR.$MINOR.$PATCH"
         NEW_VER="$MAJOR.$MINOR.$PATCH"
