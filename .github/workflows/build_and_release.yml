@@ -73,7 +73,9 @@ jobs:
 
     - name: Update PLUGIN_VERSION in plugin_version.h
       run: |
-        sed -i 's/#define PLUGIN_VERSION "[0-9.]*"/#define PLUGIN_VERSION "${{ steps.get_version.outputs.new_version }}"/' BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        sed -i "s/#define PLUGIN_VERSION \"[0-9.]*\"/#define PLUGIN_VERSION \"${{ steps.get_version.outputs.new_version }}\"/" BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        echo "=== plugin_version.h after edit ==="
+        cat BnsDatafilePlugin_AnimationRemover/plugin_version.h
       shell: bash
 
     - name: Add MSBuild to PATH
