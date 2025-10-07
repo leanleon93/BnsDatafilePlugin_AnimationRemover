@@ -1,0 +1,35 @@
+name: Update Submodules Periodically
+on:
+  schedule:
+    - cron: "0 * * * *" #Every hour
+  workflow_dispatch:
+  
+jobs:
+  update-submodules:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Update Submodules
+        run: |
+          git submodule update --remote --merge
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Submodule updates detected. Committing changes..."
+            git commit -m "Update submodules to the latest version"
+            git push origin master
+          else
+            echo "No submodule updates detected."
+          fi
