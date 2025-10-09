@@ -41,7 +41,8 @@ jobs:
           else
             echo "No submodule updates detected."
             echo "updated=false" >> $GITHUB_OUTPUT
-
+          fi
+          
   build-and-release:
     if: needs.update-submodules.outputs.updated == 'true'
     uses: ./.github/workflows/release-build.yml
