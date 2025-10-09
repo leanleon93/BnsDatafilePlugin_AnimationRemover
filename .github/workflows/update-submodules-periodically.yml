@@ -4,11 +4,16 @@ on:
     - cron: "0 * * * *" #Every hour
   workflow_dispatch:
   
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+  
+permissions:
+  contents: write
+  
 jobs:
   update-submodules:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
       
     steps:
       - name: Checkout Repository
@@ -24,12 +29,18 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
       - name: Update Submodules
+        id: update_submodules
         run: |
           git submodule update --remote --merge
           if [ -n "$(git status --porcelain)" ]; then
             echo "Submodule updates detected. Committing changes..."
             git commit -a -m "Update submodules to the latest version"
             git push origin master
+            echo "updated=true" >> $GITHUB_OUTPUT
           else
             echo "No submodule updates detected."
           fi
+          
+      - name: Calculate next version
+        if: steps.update_submodules.outputs.updated == 'true'
+        uses: ./.github/workflows/release-build.yml
