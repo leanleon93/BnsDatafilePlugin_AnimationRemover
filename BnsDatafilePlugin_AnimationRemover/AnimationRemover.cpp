@@ -411,6 +411,7 @@ static void UiPanel(void* userData) {
 	if (g_SkillIdManager->IsCriticalFail()) {
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Critical error in SkillIdManager! Plugin may not work correctly.");
 		g_imgui->Spacing();
+		g_imgui->Separator();
 	}
 	if (!g_SkillIdManager->IsSetupComplete()) {
 		g_imgui->TextColored(1.0f, 1.0f, 0.0f, 1.0f, "SkillIdManager setup in progress, please wait...");
@@ -418,8 +419,6 @@ static void UiPanel(void* userData) {
 	}
 
 	// Section: Enable
-	g_imgui->Spacing();
-	g_imgui->Separator();
 	bool enabled = g_PluginConfig->AnimFilterEnabled();
 	if (g_imgui->Checkbox("Enable", &enabled)) {
 		g_PluginConfig->SetEnabled(enabled);
