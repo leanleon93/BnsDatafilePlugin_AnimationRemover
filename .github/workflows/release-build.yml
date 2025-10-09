@@ -15,22 +15,31 @@ on:
         required: false
         type: string
         default: "Release"
-
+        
+permissions:
+  contents: write
+  
+env:
+  SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
+  BUILD_CONFIGURATION: ${{ inputs.build_configuration }}
+  
 jobs:
   release-build:
     runs-on: windows-latest
-
-    env:
-      SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
-      BUILD_CONFIGURATION: ${{ inputs.build_configuration }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
           fetch-depth: 0
-
+          
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
       - name: Calculate next version
         id: get_version
         shell: bash
