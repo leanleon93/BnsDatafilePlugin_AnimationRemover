@@ -1,0 +1,127 @@
+name: Release and Build
+
+on:
+  workflow_call:
+    inputs:
+      bump:
+        required: false
+        type: string
+        default: "patch"
+      solution_file_path:
+        required: false
+        type: string
+        default: "."
+      build_configuration:
+        required: false
+        type: string
+        default: "Release"
+
+jobs:
+  release-build:
+    runs-on: windows-latest
+
+    env:
+      SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
+      BUILD_CONFIGURATION: ${{ inputs.build_configuration }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Calculate next version
+        id: get_version
+        shell: bash
+        run: |
+          git fetch --tags
+          TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+          TAG=$(echo "$TAG" | tr -d '[:space:]')
+          echo "[DEBUG] TAG='$TAG'"
+          if [ -z "$TAG" ]; then
+            MAJOR=1; MINOR=0; PATCH=0
+          else
+            VER=${TAG#v}
+            IFS='.' read -r MAJOR MINOR PATCH <<EOF
+          $VER
+          EOF
+            if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+              echo "Failed to parse version! VER='$VER'"
+              exit 1
+            fi
+          fi
+          BUMP="${{ inputs.bump }}"
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          NEW_VER="$MAJOR.$MINOR.$PATCH"
+          echo "[DEBUG] new_tag=$NEW_TAG new_version=$NEW_VER"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+
+      - name: Update PLUGIN_VERSION in plugin_version.h
+        run: |
+          sed -i "s/#define PLUGIN_VERSION \"[0-9.]*\"/#define PLUGIN_VERSION \"${{ steps.get_version.outputs.new_version }}\"/" BnsDatafilePlugin_AnimationRemover/plugin_version.h
+          echo "=== plugin_version.h after edit ==="
+          cat BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        shell: bash
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Build
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Verify DLL built
+        id: verify_dll
+        run: |
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" ]; then
+            echo "DLL not found! Build failed or wrong path."
+            exit 1
+          fi
+        shell: bash
+
+      - name: Commit, tag, and push version bump
+        run: |
+          git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
+          git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
+          git tag ${{ steps.get_version.outputs.new_tag }}
+          git push
+          git push origin ${{ steps.get_version.outputs.new_tag }}
+        shell: bash
+
+      - name: Set DLL path output
+        id: find_dll
+        run: echo "dll_path=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -2 | tail -1 || true)
+          if [ -z "$PREV_TAG" ]; then
+            git log --oneline > release_notes.txt
+          else
+            git log --oneline "$PREV_TAG"..HEAD > release_notes.txt
+          fi
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          cat release_notes.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.new_tag }}
+          name: Release ${{ steps.get_version.outputs.new_tag }}
+          body: ${{ env.RELEASE_BODY }}
+          files: ${{ steps.find_dll.outputs.dll_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
