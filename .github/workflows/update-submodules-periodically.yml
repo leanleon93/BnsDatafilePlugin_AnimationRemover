@@ -28,7 +28,7 @@ jobs:
           git submodule update --remote --merge
           if [ -n "$(git status --porcelain)" ]; then
             echo "Submodule updates detected. Committing changes..."
-            git commit -m "Update submodules to the latest version"
+            git commit -a -m "Update submodules to the latest version"
             git push origin master
           else
             echo "No submodule updates detected."
