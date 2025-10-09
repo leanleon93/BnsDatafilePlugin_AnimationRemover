@@ -261,7 +261,6 @@ static void SetProfile(int profileId) {
 	//maybe print text chat message
 }
 
-// Add this helper function at the top of the file or in an appropriate utility location
 #include <windows.h>
 
 // Converts a std::wstring to a std::string (UTF-8)
@@ -409,9 +408,6 @@ static void ProfileEditorUiPanel(void* userData) {
 }
 
 static void UiPanel(void* userData) {
-	g_imgui->Spacing();
-	g_imgui->Dummy(0.0f, 5.0f);
-
 	if (g_SkillIdManager->IsCriticalFail()) {
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Critical error in SkillIdManager! Plugin may not work correctly.");
 		g_imgui->Spacing();
@@ -420,7 +416,10 @@ static void UiPanel(void* userData) {
 		g_imgui->TextColored(1.0f, 1.0f, 0.0f, 1.0f, "SkillIdManager setup in progress, please wait...");
 		return;
 	}
-	//enabled checkbox
+
+	// Section: Enable
+	g_imgui->Spacing();
+	g_imgui->Separator();
 	bool enabled = g_PluginConfig->AnimFilterEnabled();
 	if (g_imgui->Checkbox("Enable", &enabled)) {
 		g_PluginConfig->SetEnabled(enabled);
@@ -428,61 +427,59 @@ static void UiPanel(void* userData) {
 		g_SkillIdManager->ReapplyEffectFilters();
 		ReloadSkillShow3();
 	}
-
-	g_imgui->Spacing();
-	g_imgui->Separator();
 	g_imgui->Spacing();
 
-	//current profile
-	g_imgui->Text("Current Profile: ");
+	// Section: Current Profile
+	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Current Profile:");
 	if (g_PluginConfig->HasActiveProfile()) {
 		const auto& profile = g_PluginConfig->GetActiveProfile();
+		g_imgui->SameLineDefault();
 		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(profile.Text).c_str());
 	}
 	else {
+		g_imgui->SameLineDefault();
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
 	}
 
 	g_imgui->Spacing();
 	g_imgui->Separator();
+
+	// Section: Select Profile
+	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Select Profile:");
 	g_imgui->Spacing();
 
-	g_imgui->Text("Select Profile: ");
+	// Use columns for profile buttons
+	int numProfiles = static_cast<int>(g_PluginConfig->GetAnimFilterConfig().Profiles.size());
+	int columns = numProfiles > 4 ? 3 : numProfiles; // 3 columns if many profiles
+	g_imgui->Columns(columns, nullptr, false);
 	for (const auto& profile : g_PluginConfig->GetAnimFilterConfig().Profiles) {
-		if (g_imgui->Button(WStringToString(profile.second.Text).c_str())) {
+		if (g_imgui->CustomButton(WStringToString(profile.second.Text).c_str(), -FLT_MIN, 0)) {
 			SetProfile(profile.first);
 		}
-		g_imgui->SameLine(0.0f, 5.0f);
+		g_imgui->NextColumn();
 	}
+	g_imgui->Columns(1, nullptr, false);
 	g_imgui->Spacing();
+
+	// Section: Actions
 	g_imgui->Separator();
 	g_imgui->Spacing();
+
 	static bool window_open = false;
-	if (g_imgui->Button("Open Profile Editor")) {
+	if (g_imgui->CustomButton("Open Profile Editor", 180, 0)) {
 		window_open = true;
 	}
-	g_imgui->Spacing();
-	g_imgui->Separator();
-	g_imgui->Spacing();
-	if (g_imgui->Button("Reload Config")) {
+	g_imgui->SameLineDefault();
+	if (g_imgui->CustomButton("Reload Config", 120, 0)) {
 		ReloadConfig();
 	}
 
+	// Profile Editor Window
 	if (window_open) {
 		g_imgui->Begin("Animation Filter Profile Editor", &window_open, 0);
 		ProfileEditorUiPanel(nullptr);
 		g_imgui->End();
 	}
-
-	/*g_imgui->Spacing();
-	g_imgui->Separator();
-	g_imgui->Spacing();
-	if (g_imgui->Button("Save to disk test")) {
-		g_PluginConfig->SaveToDisk();
-	}*/
-
-	g_imgui->Spacing();
-	g_imgui->Dummy(0.0f, 5.0f);
 }
 
 
@@ -495,8 +492,6 @@ static void __fastcall Init(PluginInitParams* params) {
 		g_unregister = params->unregisterImGuiPanel;
 		ImGuiPanelDesc desc = { "Animation Filter", UiPanel, nullptr };
 		g_panelHandle = g_register(&desc, false);
-		/*ImGuiPanelDesc desc2 = { "Animation Filter Profile Editor", ProfileEditorUiPanel, nullptr };
-		g_panelHandle2 = g_register(&desc2);*/
 	}
 	g_PluginConfig = std::make_unique<PluginConfig>();
 	g_PluginConfig->ReloadFromConfig();
