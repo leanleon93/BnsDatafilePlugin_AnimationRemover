@@ -25,18 +25,9 @@ on:
 concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
-
+  
 jobs:
-  build:
-    runs-on: windows-latest
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
-    - name: Release Build
-      uses: ./.github/workflows/release-build.yml
-      with:
-        bump: ${{ github.event.inputs.bump }}
+  build-and-release:
+    uses: ./.github/workflows/release-build.yml
+    with:
+      bump: ${{ github.event.inputs.bump || 'patch' }}
