@@ -99,6 +99,7 @@ jobs:
 
       - name: Commit, tag, and push version bump
         run: |
+          git pull --rebase origin master
           git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
           git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
           git tag ${{ steps.get_version.outputs.new_tag }}
