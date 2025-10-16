@@ -99,12 +99,38 @@ jobs:
 
       - name: Commit, tag, and push version bump
         run: |
+          # Ensure we have the latest master
+          git fetch origin master
+
+          # Stash any local changes (including untracked) so pull/rebase won't fail
+          STASH_MSG="pre-release-bump-$(date +%s)"
+          git stash push -u -m "$STASH_MSG" || true
+
+          # Rebase onto origin/master
           git pull --rebase origin master
-          git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
-          git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}"
-          git tag ${{ steps.get_version.outputs.new_tag }}
-          git push
-          git push origin ${{ steps.get_version.outputs.new_tag }}
+
+          # Restore stashed changes; if there are conflicts, stash pop will return non-zero
+          git stash pop || true
+
+          # Only commit if there are changes
+          if [ -n "$(git status --porcelain)" ]; then
+            git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
+            git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}" || true
+          else
+            echo "No changes to commit."
+          fi
+
+          # Create tag if it doesn't already exist
+          TAG="${{ steps.get_version.outputs.new_tag }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping tag creation."
+          else
+            git tag "$TAG"
+          fi
+
+          # Push commits and tags
+          git push origin HEAD --follow-tags || git push origin HEAD || true
+          git push origin "$TAG" || true
         shell: bash
 
       - name: Set DLL path output
