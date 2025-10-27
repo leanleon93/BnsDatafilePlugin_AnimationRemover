@@ -82,16 +82,24 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			}
 			profile.EffectFilters.push_back(effectOption);
 		}
-		for (pugi::xml_node animSwapOptionNode : profileNode.child("swap_options").children("option")) {
-			AnimFilterConfig::AnimFilterProfile::SwapOption swapOption{};
-			auto targetSkillId = animSwapOptionNode.attribute("targetSkillId").as_int();
-			swapOption.TargetSkillId = targetSkillId;
-			auto animationSkillId = animSwapOptionNode.attribute("animationSkillId").as_int();
-			swapOption.AnimationSkillId = animationSkillId;
-			auto animationSkillVariation = animSwapOptionNode.attribute("animationSkillVariation").as_int();
-			swapOption.AnimationSkillVariation = animationSkillVariation;
-			profile.AnimationSwaps[targetSkillId] = swapOption;
+		for (pugi::xml_node animSwapGroupNode : profileNode.child("swap_options").children("group")) {
+			AnimFilterConfig::AnimFilterProfile::SwapGroup swapGroup{};
+			swapGroup.Name = animSwapGroupNode.attribute("name").as_string();
+			for (pugi::xml_node animSwapOptionNode : animSwapGroupNode.children("option")) {
+				AnimFilterConfig::AnimFilterProfile::SwapOption swapOption{};
+				auto targetSkillId = animSwapOptionNode.attribute("targetSkillId").as_int();
+				swapOption.TargetSkillId = targetSkillId;
+				auto animationSkillId = animSwapOptionNode.attribute("animationSkillId").as_int();
+				swapOption.AnimationSkillId = animationSkillId;
+				auto animationSkillVariationAttr = animSwapOptionNode.attribute("animationSkillVariation");
+				int animationSkillVariation = animationSkillVariationAttr ? animationSkillVariationAttr.as_int() : 1;
+				swapOption.AnimationSkillVariation = animationSkillVariation;
+				swapGroup.Swaps.push_back(swapOption);
+				profile.AnimationSwaps[targetSkillId] = swapOption;
+			}
+			profile.AnimationSwapGroups.push_back(swapGroup);
 		}
+
 		for (pugi::xml_node animSwapOptionNode : profileNode.child("effect_swap_options").children("option")) {
 			AnimFilterConfig::AnimFilterProfile::EffectSwapOption effectSwapOption{};
 			auto targetEffectId = animSwapOptionNode.attribute("targetEffectId").as_int();
@@ -186,12 +194,15 @@ void PluginConfig::SaveToDisk()
 
 		// Swap options
 		xml_node swapOptionsNode = profileNode.append_child("swap_options");
-		for (const auto& swapPair : profile.AnimationSwaps) {
-			const auto& swapOption = swapPair.second;
-			xml_node optionNode = swapOptionsNode.append_child("option");
-			optionNode.append_attribute("targetSkillId") = swapOption.TargetSkillId;
-			optionNode.append_attribute("animationSkillId") = swapOption.AnimationSkillId;
-			optionNode.append_attribute("animationSkillVariation") = swapOption.AnimationSkillVariation;
+		for (const auto& swapGroup : profile.AnimationSwapGroups) {
+			xml_node groupNode = swapOptionsNode.append_child("group");
+			groupNode.append_attribute("name") = swapGroup.Name.c_str();
+			for (const auto& swapOption : swapGroup.Swaps) {
+				xml_node optionNode = groupNode.append_child("option");
+				optionNode.append_attribute("targetSkillId") = swapOption.TargetSkillId;
+				optionNode.append_attribute("animationSkillId") = swapOption.AnimationSkillId;
+				optionNode.append_attribute("animationSkillVariation") = swapOption.AnimationSkillVariation;
+			}
 		}
 
 		// Effect swap options
