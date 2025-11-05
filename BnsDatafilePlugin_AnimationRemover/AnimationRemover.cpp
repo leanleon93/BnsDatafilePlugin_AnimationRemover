@@ -2,7 +2,15 @@
 #include "PluginConfig.h"
 #include "SkillIdManager.h"
 #include <EU/BnsTableNames.h>
+#include <KR/BnsTableNames.h>
 #include <EU/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <KR/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <EU/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <KR/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <EU/job/AAA_job_RecordBase.h>
+#include <KR/job/AAA_job_RecordBase.h>
+#include <EU/stance/AAA_stance_RecordBase.h>
+#include <KR/stance/AAA_stance_RecordBase.h>
 #include <string>
 #include "plugin_version.h"
 
@@ -58,6 +66,8 @@ static void RemoveAnimationsForRecord(BnsTables::KR::skillshow3_Record* record)
 		}) {
 		setToNull(member);
 	}
+	record->create_phantom_type = (signed char)0;
+	record->lyn_phantom_count = 0;
 }
 
 #ifdef _BNSEU
@@ -170,10 +180,100 @@ static void SwapAnimationsForRecords(BnsTables::KR::skillshow3_Record* record1, 
 		}) {
 		member1 = member2;
 	}
+	record1->create_phantom_type = record2->create_phantom_type;
+	record1->lyn_phantom_count = record2->lyn_phantom_count;
+	record1->phantom_shoot_type = record2->phantom_shoot_type;
 }
+
+//static constexpr const wchar_t* fullParticleRef = L"00027869.UI_Shooter_gauge";
+//
+//static PluginReturnData __fastcall StanceDetour(PluginExecuteParams* params) {
+//	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile() || !g_SkillIdManager->IsSetupComplete()) {
+//		return {};
+//	}
+//#ifdef _BNSEU
+//	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
+//	auto stance = (BnsTables::EU::stance_Record*)params->oFind(params->table, params->key);
+//#elif _BNSKR
+//	PLUGIN_DETOUR_GUARD(params, BnsTables::KR::TableNames::GetTableVersion);
+//	auto stance = (BnsTables::KR::stance_Record*)params->oFind(params->table, params->key);
+//#endif
+//	stance->sp_gauge_style = (signed char)BnsTables::EU::stance_Record::sp_gauge_style::bar_1;
+//	stance->sp_gauge_numeric_visible = true;
+//
+//	stance->sp_gauge_full_particle_ref = const_cast<wchar_t*>(fullParticleRef);
+//	stance->sp_gauge_charge_particle_ref = const_cast<wchar_t*>(fullParticleRef);
+//	stance->sp_gauge_consume_particle_ref = const_cast<wchar_t*>(fullParticleRef);
+//	stance->sp_gauge_charge_observer_particle_ref = const_cast<wchar_t*>(fullParticleRef);
+//	stance->sp_gauge_consume_observer_particle_ref = const_cast<wchar_t*>(fullParticleRef);
+//
+//	stance->sp_gauge_full_particle_scale = 0.8f;
+//	stance->sp_gauge_charge_particle_scale = 0.8f;
+//	stance->sp_gauge_consume_particle_scale = 0.8f;
+//	stance->sp_gauge_charge_observer_particle_scale = 0.8f;
+//	stance->sp_gauge_consume_observer_particle_scale = 0.8f;
+//	return {};
+//}
+
+static PluginReturnData __fastcall JobDetour(PluginExecuteParams* params) {
+	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile() || !g_SkillIdManager->IsSetupComplete()) {
+		return {};
+	}
+	static std::unordered_map<uint64_t, signed char> originalPhantomWeaponActiveTypes = {};
+#ifdef _BNSEU
+	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
+	auto job = (BnsTables::EU::job_Record*)params->oFind(params->table, params->key);
+#elif _BNSKR
+	PLUGIN_DETOUR_GUARD(params, BnsTables::KR::TableNames::GetTableVersion);
+	auto job = (BnsTables::KR::job_Record*)params->oFind(params->table, params->key);
+#endif
+	if (job == nullptr) return {};
+	const auto& profile = g_PluginConfig->GetActiveProfile();
+	auto skillOptions = profile.GetJobSkillOption(job->key.job);
+	if (skillOptions.IsHideAll()) {
+		//store original value if not already stored
+		if (originalPhantomWeaponActiveTypes.find(job->key.key) == originalPhantomWeaponActiveTypes.end()) {
+			originalPhantomWeaponActiveTypes[job->key.key] = job->phantom_weapon_active_type;
+		}
+		job->phantom_weapon_active_type = (signed char)0;
+	}
+	else {
+		//restore original value if it was stored
+		if (originalPhantomWeaponActiveTypes.find(job->key.key) != originalPhantomWeaponActiveTypes.end()) {
+			job->phantom_weapon_active_type = originalPhantomWeaponActiveTypes[job->key.key];
+			originalPhantomWeaponActiveTypes.erase(job->key.key);
+		}
+	}
+	return {};
+}
+
+static PluginReturnData __fastcall Phantomsword3Detour(PluginExecuteParams* params) {
+#ifdef _BNSEU
+	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
+	static BnsTables::EU::phantomsword3_Record emptyRecord = {};
+#elif _BNSKR
+	PLUGIN_DETOUR_GUARD(params, BnsTables::KR::TableNames::GetTableVersion);
+	static BnsTables::KR::phantomsword3_Record emptyRecord = {};
+#endif
+	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile() || !g_SkillIdManager->IsSetupComplete()) {
+		return {};
+	}
+	const auto& ids = g_SkillIdManager->GetIdsToFilter();
+
+	auto key = BnsTables::EU::phantomsword3_Record::Key{};
+	key.key = params->key;
+	const auto skillId = key.id;
+	if (!ids.contains(skillId)) return {};
+	return { (DrEl*)&emptyRecord };
+}
+
 static bool reloadRequired = false;
 static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params) {
+#ifdef _BNSEU
 	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
+#elif _BNSKR
+	PLUGIN_DETOUR_GUARD(params, BnsTables::KR::TableNames::GetTableVersion);
+#endif
 	if (!g_PluginConfig->AnimFilterEnabled() || !g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile() || !g_SkillIdManager->IsSetupComplete()) {
 		return {};
 	}
@@ -492,11 +592,12 @@ static void __fastcall Init(PluginInitParams* params) {
 		ImGuiPanelDesc desc = { "Animation Filter", UiPanel, nullptr };
 		g_panelHandle = g_register(&desc, false);
 	}
-	g_PluginConfig = std::make_unique<PluginConfig>();
-	g_PluginConfig->ReloadFromConfig();
+
 	if (params && params->dataManager) {
 		g_dataManager = params->dataManager;
 		g_SkillIdManager = std::make_unique<SkillIdManager>(params->dataManager);
+		g_PluginConfig = std::make_unique<PluginConfig>();
+		g_PluginConfig->ReloadFromConfig();
 		g_SkillIdManager->SetupAsync();
 	}
 }
@@ -513,7 +614,10 @@ static void __fastcall Unregister() {
 }
 
 PluginTableHandler handlers[] = {
-	{ L"skillshow3", &Skillshow3Detour }
+	{ L"skillshow3", &Skillshow3Detour },
+	{ L"phantomsword3", &Phantomsword3Detour },
+	{ L"job", &JobDetour }
+	//{ L"stance", &StanceDetour }
 };
 
 DEFINE_PLUGIN_API_VERSION()

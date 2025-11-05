@@ -31,6 +31,7 @@ public:
 	}
 	__int16 GetSkillshowTableId() const;
 	bool Setup();
+	bool SetupWithRetry();
 	void SetupAsync();
 	bool IsSetupComplete() const;
 	bool IsCriticalFail() const;
@@ -54,6 +55,7 @@ public:
 	};
 	void SetDataManager(Data::DataManager* ptr);
 	void ReapplyEffectFilters();
+	char GetJobIdForEnName(std::wstring const& enName);
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;
@@ -141,7 +143,6 @@ private:
 	void ResetEffectIdsToFilter();
 	std::unordered_map<unsigned __int64, std::unordered_map<std::string, wchar_t>> effectRestoreList;
 	std::unordered_map<unsigned __int64, std::unordered_map<std::string, wchar_t*>> effectSwapRestoreList;
-	char GetJobIdForEnName(std::wstring const& enName);
 	bool SetupJobNameMap();
 	bool SetupAllSkillIds();
 	bool SetupSkillShowTableId();
@@ -160,7 +161,7 @@ private:
 	void SwapAnimationsForEffect(BnsTables::KR::effect_Record* target, BnsTables::KR::effect_Record* animation);
 	void RemoveAnimationsForEffect(BnsTables::KR::effect_Record* effectRecord);
 #endif
-	void SetupSoulCoreSkills();
+	bool SetupSoulCoreSkills();
 	void AddSoulCoreChildren();
 	std::unordered_set<int> GetInheritedIds(int id);
 	void AddChildrenSkillIds(SkillIdsForJob& skillIdsForJobEntry);

@@ -19,6 +19,7 @@ struct AnimFilterConfig {
 		};
 		struct SkillOption {
 			std::wstring Name;
+			signed char Job;
 			bool HideSpec1 = false;
 			bool HideSpec2 = false;
 			bool HideSpec3 = false;
@@ -50,6 +51,14 @@ struct AnimFilterConfig {
 		SkillOption GetJobSkillOption(std::wstring_view jobName) const {
 			for (const auto& skillOption : SkillFilters) {
 				if (skillOption.Name == jobName) {
+					return skillOption;
+				}
+			}
+			return SkillOption();
+		}
+		SkillOption GetJobSkillOption(signed char job) const {
+			for (const auto& skillOption : SkillFilters) {
+				if (skillOption.Job == job) {
 					return skillOption;
 				}
 			}

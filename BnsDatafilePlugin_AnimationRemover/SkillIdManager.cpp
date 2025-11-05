@@ -80,7 +80,6 @@ std::unordered_set<int> SkillIdManager::GetInheritedIds(int id) {
 
 #elif _BNSKR
 		auto record = (KR::skill_inheritance_Record*)innerIter->_vtptr->Ptr(innerIter);
-
 #endif
 		if (record == nullptr) continue;
 		if (record->parent_skill_id != id) continue;
@@ -108,7 +107,6 @@ std::unordered_set<int> SkillIdManager::GetNeoChildSkillIds2(int id) {
 
 #elif _BNSKR
 		auto record = (KR::skill_train_by_item_Record*)innerIter->_vtptr->Ptr(innerIter);
-
 #endif
 		if (record == nullptr) continue;
 		if (auto skill3Key = Skill3KeyHelper::BuildKey(id, 1); record->main_origin_skill.Key != skill3Key) continue;
@@ -152,7 +150,6 @@ std::unordered_set<int> SkillIdManager::GetNeoChildSkillIds(int id) {
 
 #elif _BNSKR
 		auto record = (KR::skillbookcatalogueitem_Record*)innerIter->_vtptr->Ptr(innerIter);
-
 #endif
 		if (record == nullptr) continue;
 		if (auto skill3Key = Skill3KeyHelper::BuildKey(id, 1); record->parent_skill.Key != skill3Key) continue;
@@ -305,18 +302,18 @@ void SkillIdManager::AddSoulCoreChildren() {
 	soulCoreSkills.insert(newIds.begin(), newIds.end());
 }
 
-void SkillIdManager::SetupSoulCoreSkills() {
+bool SkillIdManager::SetupSoulCoreSkills() {
 	if (!versionCheckSuccess.contains(L"item") || !versionCheckSuccess[L"item"]) {
-		return;
+		return false;
 	}
 	const auto table = GetTable(this->dataManager, L"item");
-	if (table == nullptr) return;
+	if (table == nullptr) return false;
 	auto innerIter = table->__vftable->createInnerIter(table);
 	std::unordered_set<int> itemSkills;
 	do {
 		if (!innerIter->_vtptr->IsValid(innerIter)) continue;
 		auto baseRecord = innerIter->_vtptr->Ptr(innerIter);
-
+		if (baseRecord == nullptr) continue;
 #ifdef _BNSEU
 		if (baseRecord->subtype != EU::item_gem_Record::SubType()) continue;
 		auto record = (EU::item_gem_Record*)baseRecord;
@@ -329,6 +326,7 @@ void SkillIdManager::SetupSoulCoreSkills() {
 	} while (innerIter->_vtptr->Next(innerIter));
 	//table->__vftable->removeInnerIter(table, innerIter);
 	AddSoulCoreChildren();
+	return true;
 }
 
 std::unordered_set<int> SkillIdManager::GetItemSkills(int id) {
@@ -463,7 +461,7 @@ bool SkillIdManager::SetupEffectIdsForJob(char jobId) {
 				bool breakOuter = false;
 				for (auto const& systematization : record->systematization) {
 					if (systematization.Key == 0) continue;
-					if (systematization.Key == 30) {
+					if (systematization.Key == 30 || systematization.Key == 31 || systematization.Key == 32) { //skip party buff and protect skills
 						breakOuter = true;
 						break;
 					}
@@ -564,11 +562,22 @@ bool SkillIdManager::SetupAllSkillIds() {
 	if (this->dataManager == nullptr) {
 		return false;
 	}
-	SetupSoulCoreSkills();
+	auto table = GetTable(this->dataManager, L"zonetriggereventstage");
+	if (table == nullptr) {
+		return false;
+	}
 	for (auto const& jobId : jobIds) {
 		if (SetupSkillIdsForJob(jobId)) {
-			SetupEffectIdsForJob(jobId);
+			if (!SetupEffectIdsForJob(jobId)) {
+				return false;
+			}
 		}
+		else {
+			return false;
+		}
+	}
+	if (!SetupSoulCoreSkills()) {
+		return false;
 	}
 	return true;
 }
@@ -695,8 +704,23 @@ bool SkillIdManager::Setup() {
 	}
 }
 
+bool SkillIdManager::SetupWithRetry() {
+	const int maxRetries = 10;
+	const std::chrono::milliseconds retryDelay(1000); // 1 second delay between retries
+	for (int attempt = 1; attempt <= maxRetries; ++attempt) {
+		if (Setup()) {
+			return true; // Setup succeeded
+		}
+		// If not the last attempt, wait before retrying
+		if (attempt < maxRetries) {
+			std::this_thread::sleep_for(retryDelay);
+		}
+	}
+	return false; // All attempts failed
+}
+
 void SkillIdManager::SetupAsync() {
-	std::thread([this]() { this->Setup(); }).detach();
+	std::thread([this]() { this->SetupWithRetry(); }).detach();
 }
 
 Data::DataManager* SkillIdManager::GetDataManager() {

@@ -1,6 +1,7 @@
 #include "PluginConfig.h"
 #include "pugixml/pugixml.hpp"
 #include <Windows.h>
+#include "SkillIdManager.h"
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
@@ -112,6 +113,7 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			AnimFilterConfig::AnimFilterProfile::SkillOption skillOption;
 			auto name = skillOptionNode.attribute("name").as_string();
 			skillOption.Name = PugiCharPtrToWString(name);
+			skillOption.Job = g_SkillIdManager->GetJobIdForEnName(skillOption.Name);
 			skillOption.HideSpec1 = skillOptionNode.attribute("hideSpec1").as_bool();
 			skillOption.HideSpec2 = skillOptionNode.attribute("hideSpec2").as_bool();
 			skillOption.HideSpec3 = skillOptionNode.attribute("hideSpec3").as_bool();
