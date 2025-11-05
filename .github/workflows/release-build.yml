@@ -11,17 +11,22 @@ on:
         required: false
         type: string
         default: "."
-      build_configuration:
+      build_configuration_eu:
         required: false
         type: string
         default: "Release"
+      build_configuration_kr:
+        required: false
+        type: string
+        default: "Release KR"
         
 permissions:
   contents: write
   
 env:
   SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
-  BUILD_CONFIGURATION: ${{ inputs.build_configuration }}
+  BUILD_CONFIGURATION_EU: ${{ inputs.build_configuration_eu }}
+  BUILD_CONFIGURATION_KR: ${{ inputs.build_configuration_kr }}
   
 jobs:
   release-build:
@@ -83,20 +88,33 @@ jobs:
 
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v1.0.2
-
-      - name: Build
+        
+      - name: Build ReleaseEU
         working-directory: ${{ env.GITHUB_WORKSPACE }}
-        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} ${{ env.SOLUTION_FILE_PATH }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_EU }} ${{ env.SOLUTION_FILE_PATH }}
 
-      - name: Verify DLL built
-        id: verify_dll
+      - name: Build ReleaseKR
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_KR }} ${{ env.SOLUTION_FILE_PATH }}
+        
+      - name: Verify DLLs built
+        id: verify_dlls
         run: |
           if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" ]; then
-            echo "DLL not found! Build failed or wrong path."
+            echo "EU DLL not found! Build failed or wrong path."
+            exit 1
+          fi
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter.dll" ]; then
+            echo "KR DLL not found! Build failed or wrong path."
             exit 1
           fi
         shell: bash
-
+        
+      - name: Rename KR DLL
+        run: |
+          cp bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter_KR.dll
+        shell: bash
+        
       - name: Commit, tag, and push version bump
         run: |
           # Ensure we have the latest master
@@ -132,10 +150,12 @@ jobs:
           git push origin HEAD --follow-tags || git push origin HEAD || true
           git push origin "$TAG" || true
         shell: bash
-
-      - name: Set DLL path output
-        id: find_dll
-        run: echo "dll_path=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
+        
+      - name: Set DLL paths output
+        id: find_dlls
+        run: |
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Generate release notes
@@ -158,6 +178,8 @@ jobs:
           tag_name: ${{ steps.get_version.outputs.new_tag }}
           name: Release ${{ steps.get_version.outputs.new_tag }}
           body: ${{ env.RELEASE_BODY }}
-          files: ${{ steps.find_dll.outputs.dll_path }}
+          files: |
+            ${{ steps.find_dlls.outputs.dll_path_eu }}
+            ${{ steps.find_dlls.outputs.dll_path_kr }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
