@@ -154,7 +154,7 @@ jobs:
       - name: Set DLL paths output
         id: find_dlls
         run: |
-          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
           echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
         shell: bash
 
