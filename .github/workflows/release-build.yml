@@ -18,7 +18,7 @@ on:
       build_configuration_kr:
         required: false
         type: string
-        default: "Release KR"
+        default: "ReleaseKR"
         
 permissions:
   contents: write
@@ -104,7 +104,7 @@ jobs:
             echo "EU DLL not found! Build failed or wrong path."
             exit 1
           fi
-          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter.dll" ]; then
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll" ]; then
             echo "KR DLL not found! Build failed or wrong path."
             exit 1
           fi
@@ -112,7 +112,7 @@ jobs:
         
       - name: Rename KR DLL
         run: |
-          cp bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter_KR.dll
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll
         shell: bash
         
       - name: Commit, tag, and push version bump
@@ -154,8 +154,8 @@ jobs:
       - name: Set DLL paths output
         id: find_dlls
         run: |
-          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
-          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/Release KRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Generate release notes
