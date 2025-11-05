@@ -12,32 +12,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug KR|x64 = Debug KR|x64
-		Debug KR|x86 = Debug KR|x86
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
-		Release KR|x64 = Release KR|x64
-		Release KR|x86 = Release KR|x86
+		DebugKR|x64 = DebugKR|x64
+		DebugKR|x86 = DebugKR|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
+		ReleaseKR|x64 = ReleaseKR|x64
+		ReleaseKR|x86 = ReleaseKR|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{21541250-43AD-4614-8134-71569019B011}.Debug KR|x64.ActiveCfg = Debug KR|x64
-		{21541250-43AD-4614-8134-71569019B011}.Debug KR|x64.Build.0 = Debug KR|x64
-		{21541250-43AD-4614-8134-71569019B011}.Debug KR|x86.ActiveCfg = Debug KR|Win32
-		{21541250-43AD-4614-8134-71569019B011}.Debug KR|x86.Build.0 = Debug KR|Win32
 		{21541250-43AD-4614-8134-71569019B011}.Debug|x64.ActiveCfg = Debug|x64
 		{21541250-43AD-4614-8134-71569019B011}.Debug|x64.Build.0 = Debug|x64
 		{21541250-43AD-4614-8134-71569019B011}.Debug|x86.ActiveCfg = Debug|Win32
 		{21541250-43AD-4614-8134-71569019B011}.Debug|x86.Build.0 = Debug|Win32
-		{21541250-43AD-4614-8134-71569019B011}.Release KR|x64.ActiveCfg = Release KR|x64
-		{21541250-43AD-4614-8134-71569019B011}.Release KR|x64.Build.0 = Release KR|x64
-		{21541250-43AD-4614-8134-71569019B011}.Release KR|x86.ActiveCfg = Release KR|Win32
-		{21541250-43AD-4614-8134-71569019B011}.Release KR|x86.Build.0 = Release KR|Win32
+		{21541250-43AD-4614-8134-71569019B011}.DebugKR|x64.ActiveCfg = DebugKR|x64
+		{21541250-43AD-4614-8134-71569019B011}.DebugKR|x64.Build.0 = DebugKR|x64
+		{21541250-43AD-4614-8134-71569019B011}.DebugKR|x86.ActiveCfg = DebugKR|Win32
+		{21541250-43AD-4614-8134-71569019B011}.DebugKR|x86.Build.0 = DebugKR|Win32
 		{21541250-43AD-4614-8134-71569019B011}.Release|x64.ActiveCfg = Release|x64
 		{21541250-43AD-4614-8134-71569019B011}.Release|x64.Build.0 = Release|x64
 		{21541250-43AD-4614-8134-71569019B011}.Release|x86.ActiveCfg = Release|Win32
 		{21541250-43AD-4614-8134-71569019B011}.Release|x86.Build.0 = Release|Win32
+		{21541250-43AD-4614-8134-71569019B011}.ReleaseKR|x64.ActiveCfg = ReleaseKR|x64
+		{21541250-43AD-4614-8134-71569019B011}.ReleaseKR|x64.Build.0 = ReleaseKR|x64
+		{21541250-43AD-4614-8134-71569019B011}.ReleaseKR|x86.ActiveCfg = ReleaseKR|Win32
+		{21541250-43AD-4614-8134-71569019B011}.ReleaseKR|x86.Build.0 = ReleaseKR|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
