@@ -51,6 +51,9 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			if (extraoptionsNode.attribute("hideTree") != nullptr) {
 				profile.HideTree = extraoptionsNode.attribute("hideTree").as_bool();
 			}
+			if (extraoptionsNode.attribute("hideProjectileResists") != nullptr) {
+				profile.HideProjectileResists = extraoptionsNode.attribute("hideProjectileResists").as_bool();
+			}
 			if (extraoptionsNode.attribute("hideTD") != nullptr) {
 				profile.HideTimeDistortion = extraoptionsNode.attribute("hideTD").as_bool();
 			}
@@ -168,6 +171,7 @@ void PluginConfig::SaveToDisk()
 		// Extra options
 		xml_node extraOptionsNode = profileNode.append_child("extra_options");
 		extraOptionsNode.append_attribute("hideTree") = profile.HideTree;
+		extraOptionsNode.append_attribute("hideProjectileResists") = profile.HideProjectileResists;
 		extraOptionsNode.append_attribute("hideTD") = profile.HideTimeDistortion;
 		extraOptionsNode.append_attribute("hideTaxi") = profile.HideTaxi;
 		extraOptionsNode.append_attribute("hideItemSkills") = profile.HideGlobalItemSkills;

@@ -28,7 +28,7 @@ You can set extra options for a profile.
 - Hide Time Distortion
 - Hide Soulcores
 ```xml
-<extra_options hideSoulCores="true" hideTree="true" hideTaxi="true" hideTD="true" />
+<extra_options hideSoulCores="true" hideProjectileResists="true" hideTree="true" hideTaxi="true" hideTD="true" />
 ```
 Remove the options you dont want.
 

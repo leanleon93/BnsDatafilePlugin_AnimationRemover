@@ -800,6 +800,13 @@ void SkillIdManager::ResetIdsToFilter() {
 			idsToFilter.erase(id);
 		}
 	}
+	//remove projectileResistExclusionIds from idsToFilter if not hideProjectileResists
+	if (!activeProfile.HideProjectileResists) {
+		for (auto id : projectileResistExclusionIds) {
+			idsToFilter.erase(id);
+		}
+	}
+
 	if (!activeProfile.HideTimeDistortion) {
 		for (auto id : wlTDExclusionIds) {
 			idsToFilter.erase(id);

@@ -73,6 +73,29 @@ private:
 		66050
 	};
 
+	const std::unordered_set<int> projectileResistExclusionIds = {
+		//do not hide party projectile resists
+		//sum petal storm
+		155571,
+		155572,
+		155573,
+		155574,
+
+		//sin smoke
+		141860,
+		141870,
+		141880,
+
+		//bm warding spirit
+		105041,
+
+		//fm divine veil
+		135269,
+		135270,
+		135271,
+		135272
+	};
+
 	const std::unordered_set<int> bardTreeExclusionIds = {
 		242500,
 		242501,

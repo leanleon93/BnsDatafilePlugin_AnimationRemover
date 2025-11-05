@@ -220,6 +220,8 @@ static PluginReturnData __fastcall JobDetour(PluginExecuteParams* params) {
 		return {};
 	}
 	static std::unordered_map<uint64_t, signed char> originalPhantomWeaponActiveTypes = {};
+	static std::unordered_map<uint64_t, short> originalPhantomWeaponActive1Flags = {};
+
 #ifdef _BNSEU
 	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
 	auto job = (BnsTables::EU::job_Record*)params->oFind(params->table, params->key);
@@ -230,18 +232,36 @@ static PluginReturnData __fastcall JobDetour(PluginExecuteParams* params) {
 	if (job == nullptr) return {};
 	const auto& profile = g_PluginConfig->GetActiveProfile();
 	auto skillOptions = profile.GetJobSkillOption(job->key.job);
+	bool bmProjectilResistCase = false;
+	if (job->key.job == 1 && !profile.HideProjectileResists) {
+		bmProjectilResistCase = true;
+	}
 	if (skillOptions.IsHideAll()) {
-		//store original value if not already stored
-		if (originalPhantomWeaponActiveTypes.find(job->key.key) == originalPhantomWeaponActiveTypes.end()) {
-			originalPhantomWeaponActiveTypes[job->key.key] = job->phantom_weapon_active_type;
+		if (bmProjectilResistCase) {
+			if (originalPhantomWeaponActive1Flags.find(job->key.key) == originalPhantomWeaponActive1Flags.end()) {
+				originalPhantomWeaponActive1Flags[job->key.key] = job->phantom_weapon_active_effect_flag_1st;
+			}
+			job->phantom_weapon_active_effect_flag_1st = (short)BnsTables::EU::job_Record::phantom_weapon_active_effect_flag_1st::smokescreen;
+			job->phantom_weapon_count = 2;
 		}
-		job->phantom_weapon_active_type = (signed char)0;
+		else {
+			//store original value if not already stored
+			if (originalPhantomWeaponActiveTypes.find(job->key.key) == originalPhantomWeaponActiveTypes.end()) {
+				originalPhantomWeaponActiveTypes[job->key.key] = job->phantom_weapon_active_type;
+			}
+			job->phantom_weapon_active_type = (signed char)0;
+		}
 	}
 	else {
 		//restore original value if it was stored
 		if (originalPhantomWeaponActiveTypes.find(job->key.key) != originalPhantomWeaponActiveTypes.end()) {
 			job->phantom_weapon_active_type = originalPhantomWeaponActiveTypes[job->key.key];
 			originalPhantomWeaponActiveTypes.erase(job->key.key);
+		}
+		if (originalPhantomWeaponActive1Flags.find(job->key.key) != originalPhantomWeaponActive1Flags.end()) {
+			job->phantom_weapon_active_effect_flag_1st = originalPhantomWeaponActive1Flags[job->key.key];
+			originalPhantomWeaponActive1Flags.erase(job->key.key);
+			job->phantom_weapon_count = 6;
 		}
 	}
 	return {};
@@ -459,6 +479,8 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Checkbox("Hide Global Item Skills", &profile.HideGlobalItemSkills);
 	g_imgui->SameLine(0.0f, 10.0f);
 	g_imgui->Checkbox("Hide Soul Cores", &profile.HideSoulCores);
+	g_imgui->SameLine(0.0f, 10.0f);
+	g_imgui->Checkbox("Hide Projectile Resists", &profile.HideProjectileResists);
 	g_imgui->Spacing();
 
 	//Skill options

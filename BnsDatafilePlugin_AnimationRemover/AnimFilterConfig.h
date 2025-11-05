@@ -8,6 +8,7 @@ struct AnimFilterConfig {
 		std::string Name;
 		std::wstring Text;
 		bool HideTree = false;
+		bool HideProjectileResists = false;
 		bool HideTimeDistortion = false;
 		bool HideTaxi = false;
 		bool HideGlobalItemSkills = false;
