@@ -230,7 +230,7 @@ private:
 	};
 
 	const std::unordered_set<char> jobIdsFallback = {
-		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 	};
 	const std::unordered_map<std::wstring, char> jobNameFallbackMap = {
 		{ L"Blade Master", 1 },
@@ -245,6 +245,7 @@ private:
 		{ L"Soul Fighter", 10 },
 		{ L"Warden", 11 },
 		{ L"Zen Archer", 12 },
+		{ L"Spear Master", 13 },
 		{ L"Astromancer", 14 },
 		{ L"Dual Blade", 15 },
 		{ L"Musician", 16 }
