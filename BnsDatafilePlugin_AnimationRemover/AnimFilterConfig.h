@@ -70,4 +70,5 @@ struct AnimFilterConfig {
 	bool ExperimentalMemoryLoading;
 	std::unordered_map<int, AnimFilterProfile> Profiles;
 	AnimFilterProfile ActiveProfile;
+	int DefaultProfileId;
 };

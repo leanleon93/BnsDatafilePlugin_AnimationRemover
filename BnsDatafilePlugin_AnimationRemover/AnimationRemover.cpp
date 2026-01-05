@@ -442,6 +442,22 @@ static void ProfileEditorUiPanel(void* userData) {
 			break;
 		}
 	}
+
+
+	if (g_imgui->Button("Add New Profile")) {
+		//get the highest profile id
+		int newProfileId = 1;
+		for (const auto& kv : profiles) {
+			if (kv.first >= newProfileId) {
+				newProfileId = kv.first + 1;
+			}
+		}
+		g_PluginConfig->AddHideShowAllDefaultProfile(true, newProfileId, std::wstring(L"New Profile ") + std::to_wstring(newProfileId));
+		profileListDirty = true;
+	}
+	g_imgui->Spacing();
+	g_imgui->Separator();
+	g_imgui->Spacing();
 	auto profileTextCtrs = ToCStringVector(profileTexts);
 	if (g_imgui->Combo("Select Profile", &currentIndex, profileTextCtrs.data(), profileTextCtrs.size(), profileTextCtrs.size())) {
 		selectedProfileId = profileIds[currentIndex];
@@ -451,6 +467,11 @@ static void ProfileEditorUiPanel(void* userData) {
 	// If no profile is selected, return
 	if (selectedProfileId == -1 || profiles.find(selectedProfileId) == profiles.end())
 		return;
+
+	if (g_imgui->Button("Set as default Profile")) {
+		g_PluginConfig->SetDefaultProfile(selectedProfileId);
+		g_PluginConfig->SaveToDisk();
+	}
 
 	g_imgui->Spacing();
 	g_imgui->Separator();
@@ -484,10 +505,13 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Spacing();
 
 	//Skill options
-	if (g_imgui->CollapsingHeader("Class Skill Animations")) {
+	if (g_imgui->CollapsingHeader("Show skill animations for ")) {
 		g_imgui->Spacing();
 		int idx = 0;
 		for (auto& skill : profile.SkillFilters) {
+			if (g_SkillIdManager->neoJobAvailability.at(skill.Job) == false) {
+				continue;
+			}
 			g_imgui->PushIdInt(idx);
 			g_imgui->Indent(10.0f);
 			bool showAll = !skill.HideSpec1 && !skill.HideSpec2 && !skill.HideSpec3;
@@ -519,6 +543,21 @@ static void ProfileEditorUiPanel(void* userData) {
 		saveFeedback = true;
 		saveFeedbackFrames = FEEDBACK_DISPLAY_FRAMES;
 	}
+	g_imgui->SameLineDefault();
+	if (g_imgui->Button("Delete Profile")) {
+		g_PluginConfig->DeleteProfile(selectedProfileId);
+		g_PluginConfig->SaveToDisk();
+		int profile0 = profileIds.empty() ? -1 : profileIds[0];
+		if (profile0 == selectedProfileId) {
+			profile0 = profileIds.size() > 1 ? profileIds[1] : -1;
+		}
+		g_PluginConfig->SetActiveFilter(profile0);
+		g_SkillIdManager->ResetIdsToFilter();
+		g_SkillIdManager->ReapplyEffectFilters();
+		ReloadSkillShow3();
+		selectedProfileId = -1;
+		profileListDirty = true;
+	}
 
 	if (saveFeedback && saveFeedbackFrames > 0) {
 		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, "Profile saved!");
@@ -531,12 +570,12 @@ static void ProfileEditorUiPanel(void* userData) {
 
 static void UiPanel(void* userData) {
 	if (g_SkillIdManager->IsCriticalFail()) {
-		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Critical error in SkillIdManager! Plugin may not work correctly.");
+		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Critical error in Animation Filter! Plugin may not work correctly.");
 		g_imgui->Spacing();
 		g_imgui->Separator();
 	}
 	if (!g_SkillIdManager->IsSetupComplete()) {
-		g_imgui->TextColored(1.0f, 1.0f, 0.0f, 1.0f, "SkillIdManager setup in progress, please wait...");
+		g_imgui->TextColored(1.0f, 1.0f, 0.0f, 1.0f, "Animation Filter setup in progress, please wait...");
 		return;
 	}
 
@@ -550,8 +589,8 @@ static void UiPanel(void* userData) {
 	}
 	g_imgui->Spacing();
 
-	// Section: Current Profile
-	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Current Profile:");
+	// Section: Active Profile
+	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Active Profile:");
 	if (g_PluginConfig->HasActiveProfile()) {
 		const auto& profile = g_PluginConfig->GetActiveProfile();
 		g_imgui->SameLineDefault();
@@ -561,10 +600,35 @@ static void UiPanel(void* userData) {
 		g_imgui->SameLineDefault();
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
 	}
+	g_imgui->Spacing();
+	g_imgui->Separator();
+	g_imgui->Spacing();
+	// Section: Default Profile
+	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Default Profile:");
+	const auto& defaultProfileName = g_PluginConfig->GetDefaultProfileName();
+	if (!defaultProfileName.empty()) {
+
+		g_imgui->SameLineDefault();
+		g_imgui->TextColored(1.0f, 0.65f, 0.0f, 1.0f, WStringToString(defaultProfileName).c_str());
+	}
+	else {
+		g_imgui->SameLineDefault();
+		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
+	}
+	g_imgui->TextColored(0.6f, 0.6f, 0.6f, 1.0f, "This is used on game start.");
+	g_imgui->Spacing();
+
+	if (g_PluginConfig->HasActiveProfile()) {
+		const auto profileId = g_PluginConfig->GetActiveProfileId();
+		if (g_imgui->SmallButton("Set active profile as default profile")) {
+			g_PluginConfig->SetDefaultProfile(profileId);
+			g_PluginConfig->SaveToDisk();
+		}
+	}
 
 	g_imgui->Spacing();
 	g_imgui->Separator();
-
+	g_imgui->Spacing();
 	// Section: Select Profile
 	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Select Profile:");
 	g_imgui->Spacing();
@@ -591,7 +655,7 @@ static void UiPanel(void* userData) {
 		window_open = true;
 	}
 	g_imgui->SameLineDefault();
-	if (g_imgui->CustomButton("Reload Config", 120, 0)) {
+	if (g_imgui->CustomButton("Reload Config from file", 180, 0)) {
 		ReloadConfig();
 	}
 

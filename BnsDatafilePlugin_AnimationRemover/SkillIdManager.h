@@ -56,6 +56,60 @@ public:
 	void SetDataManager(Data::DataManager* ptr);
 	void ReapplyEffectFilters();
 	char GetJobIdForEnName(std::wstring const& enName);
+	const std::unordered_map<std::wstring, char> jobNameFallbackMap = {
+	{ L"Blade Master", 1 },
+	{ L"Kung Fu Master", 2 },
+	{ L"Force Master", 3 },
+	{ L"Gunslinger", 4 },
+	{ L"Destroyer", 5 },
+	{ L"Summoner", 6 },
+	{ L"Assassin", 7 },
+	{ L"Blade Dancer", 8 },
+	{ L"Warlock", 9 },
+	{ L"Soul Fighter", 10 },
+	{ L"Warden", 11 },
+	{ L"Zen Archer", 12 },
+	{ L"Spear Master", 13 },
+	{ L"Astromancer", 14 },
+	{ L"Dual Blade", 15 },
+	{ L"Musician", 16 }
+	};
+	const std::unordered_map<char, std::wstring> customJobAbbreviations = {
+		{ 1, L"BM" },
+		{ 2, L"KFM" },
+		{ 3, L"FM" },
+		{ 4, L"GS" },
+		{ 5, L"DES" },
+		{ 6, L"SUM" },
+		{ 7, L"SIN" },
+		{ 8, L"BD" },
+		{ 9, L"WL" },
+		{ 10, L"SF" },
+		{ 11, L"WD" },
+		{ 12, L"Archer" },
+		{ 13, L"SM" },
+		{ 14, L"Astro" },
+		{ 15, L"DB" },
+		{ 16, L"Bard" }
+	};
+	const std::unordered_map<char, bool> neoJobAvailability = {
+		{ 1, true },
+		{ 2, true },
+		{ 3, true },
+		{ 4, false },
+		{ 5, true },
+		{ 6, true },
+		{ 7, true },
+		{ 8, true },
+		{ 9, true },
+		{ 10, false },
+		{ 11, false },
+		{ 12, false },
+		{ 13, true },
+		{ 14, false },
+		{ 15, false },
+		{ 16, false}
+	};
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;
@@ -231,24 +285,6 @@ private:
 
 	const std::unordered_set<char> jobIdsFallback = {
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
-	};
-	const std::unordered_map<std::wstring, char> jobNameFallbackMap = {
-		{ L"Blade Master", 1 },
-		{ L"Kung Fu Master", 2 },
-		{ L"Force Master", 3 },
-		{ L"Gunslinger", 4 },
-		{ L"Destroyer", 5 },
-		{ L"Summoner", 6 },
-		{ L"Assassin", 7 },
-		{ L"Blade Dancer", 8 },
-		{ L"Warlock", 9 },
-		{ L"Soul Fighter", 10 },
-		{ L"Warden", 11 },
-		{ L"Zen Archer", 12 },
-		{ L"Spear Master", 13 },
-		{ L"Astromancer", 14 },
-		{ L"Dual Blade", 15 },
-		{ L"Musician", 16 }
 	};
 	bool AllVersionsSuccess() const;
 };

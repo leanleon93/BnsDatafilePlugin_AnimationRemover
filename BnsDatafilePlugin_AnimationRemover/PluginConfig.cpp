@@ -5,6 +5,10 @@
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
+#include <fstream>
+#include <string>
+#include "AnimFilterConfig.h"
+#include <algorithm>
 
 namespace fs = std::filesystem;
 std::unique_ptr<PluginConfig> g_PluginConfig;
@@ -18,6 +22,125 @@ void PluginConfig::Initialize()
 {
 	AnimFilterConfig = {};
 	ConfigPath = PluginConfig::GetDocumentsDirectory() + "\\BnS\\animfilter_config.xml";
+}
+
+void PluginConfig::CreateDefaultConfigFile()
+{
+	AnimFilterConfig = {};
+	AnimFilterConfig.Enabled = true;
+	AnimFilterConfig.ExperimentalMemoryLoading = false;
+	AnimFilterConfig.DefaultProfileId = 1;
+	const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
+	std::vector<std::pair<std::wstring, char>> sortedJobNames(jobNameMap.begin(), jobNameMap.end());
+	std::sort(sortedJobNames.begin(), sortedJobNames.end(),
+		[](const auto& a, const auto& b) { return a.second < b.second; });
+
+	int index = 1;
+	for (const auto& [jobName, jobId] : sortedJobNames)
+	{
+		if (g_SkillIdManager->neoJobAvailability.at(jobId) == false)
+			continue;
+		AnimFilterConfig::AnimFilterProfile profile;
+		profile.Name = std::to_string(index);
+		profile.Text = L"Only " + g_SkillIdManager->customJobAbbreviations.at(jobId);
+		profile.HideTree = false;
+		profile.HideProjectileResists = false;
+		profile.HideTimeDistortion = false;
+		profile.HideTaxi = false;
+		profile.HideGlobalItemSkills = false;
+		profile.HideSoulCores = false;
+		profile.SkillFilters = {};
+		for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
+		{
+			bool hide = (jobIdInner != jobId);
+			AnimFilterConfig::AnimFilterProfile::SkillOption skillOption;
+			skillOption.Name = jobNameInner;
+			skillOption.Job = jobIdInner;
+			skillOption.HideSpec1 = hide;
+			skillOption.HideSpec2 = hide;
+			skillOption.HideSpec3 = hide;
+			profile.SkillFilters.push_back(skillOption);
+		}
+		AnimFilterConfig.Profiles[index] = profile;
+		index++;
+	}
+	AddHideShowAllDefaultProfile(true, index, L"Hide All");
+	AddHideShowAllDefaultProfile(false, ++index, L"Show All");
+	SaveToDisk();
+}
+
+bool PluginConfig::FileExists(const std::string& path)
+{
+	std::ifstream file(path);
+	return file.good();
+}
+
+void PluginConfig::AddHideShowAllDefaultProfile(bool hide, int index, std::wstring text)
+{
+	AnimFilterConfig::AnimFilterProfile profile;
+	profile.Name = std::to_string(index);
+	profile.Text = text;
+	profile.HideTree = hide;
+	profile.HideProjectileResists = hide;
+	profile.HideTimeDistortion = hide;
+	profile.HideTaxi = hide;
+	profile.HideGlobalItemSkills = hide;
+	profile.HideSoulCores = hide;
+	const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
+	for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
+	{
+		AnimFilterConfig::AnimFilterProfile::SkillOption skillOption;
+		skillOption.Name = jobNameInner;
+		skillOption.Job = jobIdInner;
+		skillOption.HideSpec1 = hide;
+		skillOption.HideSpec2 = hide;
+		skillOption.HideSpec3 = hide;
+		profile.SkillFilters.push_back(skillOption);
+	}
+
+	AnimFilterConfig.Profiles[index] = profile;
+}
+
+void PluginConfig::DeleteProfile(int profileId)
+{
+	AnimFilterConfig.Profiles.erase(profileId);
+}
+
+void PluginConfig::SetDefaultProfile(int profileId)
+{
+	if (auto it = AnimFilterConfig.Profiles.find(profileId); it != AnimFilterConfig.Profiles.end()) {
+		AnimFilterConfig.DefaultProfileId = profileId;
+	}
+	else {
+		//default to first in list if list not empty
+		if (!AnimFilterConfig.Profiles.empty()) {
+			AnimFilterConfig.DefaultProfileId = AnimFilterConfig.Profiles.begin()->first;
+		}
+		else {
+			AnimFilterConfig.DefaultProfileId = 1;
+		}
+	}
+}
+
+std::wstring& PluginConfig::GetDefaultProfileName()
+{
+	if (auto it = AnimFilterConfig.Profiles.find(AnimFilterConfig.DefaultProfileId); it != AnimFilterConfig.Profiles.end()) {
+		return it->second.Text;
+	}
+	else {
+		static std::wstring emptyString = L"";
+		return emptyString;
+	}
+}
+
+int PluginConfig::GetActiveProfileId()
+{
+	for (const auto& [profileId, profile] : AnimFilterConfig.Profiles) {
+		if (profile.Name == AnimFilterConfig.ActiveProfile.Name) {
+			return profileId;
+		}
+	}
+	return -1;
 }
 
 std::string PluginConfig::GetDocumentsDirectory() {
@@ -128,6 +251,9 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 
 void PluginConfig::ReloadFromConfig()
 {
+	if (!FileExists(ConfigPath.string())) {
+		CreateDefaultConfigFile();
+	}
 	pugi::xml_document doc;
 	if (pugi::xml_parse_result result = doc.load_file(ConfigPath.string().c_str()); !result) {
 #ifdef _DEBUG
@@ -143,8 +269,15 @@ void PluginConfig::ReloadFromConfig()
 	if (pugi::xml_node experimentalNode = doc.child("config").child("experimental-feature"); experimentalNode) {
 		AnimFilterConfig.ExperimentalMemoryLoading = experimentalNode.attribute("value").as_bool();
 	}
+	if (pugi::xml_node defaultProfileNode = doc.child("config").child("default-profile"); defaultProfileNode) {
+		AnimFilterConfig.DefaultProfileId = defaultProfileNode.attribute("id").as_int();
+	}
+	else {
+		AnimFilterConfig.DefaultProfileId = 1;
+	}
+	AnimFilterConfig.Profiles.clear();
 	SetProfiles(doc, &AnimFilterConfig);
-	SetActiveFilter(1);
+	SetActiveFilter(AnimFilterConfig.DefaultProfileId);
 	Loaded = true;
 }
 
@@ -160,6 +293,10 @@ void PluginConfig::SaveToDisk()
 	// Enabled
 	xml_node enabledNode = configNode.append_child("enabled");
 	enabledNode.append_attribute("value") = AnimFilterConfig.Enabled;
+
+	//Default Profile Id
+	xml_node defaultProfileNode = configNode.append_child("default-profile");
+	defaultProfileNode.append_attribute("id") = AnimFilterConfig.DefaultProfileId;
 
 	// Profiles
 	xml_node profilesNode = configNode.append_child("profiles");
@@ -245,6 +382,12 @@ void PluginConfig::SetActiveFilter(int profileId)
 {
 	if (auto it = AnimFilterConfig.Profiles.find(profileId); it != AnimFilterConfig.Profiles.end()) {
 		AnimFilterConfig.ActiveProfile = it->second;
+	}
+	else {
+		//default to first in list if list not empty
+		if (!AnimFilterConfig.Profiles.empty()) {
+			AnimFilterConfig.ActiveProfile = AnimFilterConfig.Profiles.begin()->second;
+		}
 	}
 }
 
