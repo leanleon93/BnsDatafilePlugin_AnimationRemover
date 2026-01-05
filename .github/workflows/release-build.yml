@@ -45,6 +45,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
+      - name: Ensure Submodules are Updated
+        run: git submodule update --init --recursive
+        
       - name: Calculate next version
         id: get_version
         shell: bash
@@ -87,7 +90,9 @@ jobs:
         shell: bash
 
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
         
       - name: Build ReleaseEU
         working-directory: ${{ env.GITHUB_WORKSPACE }}
