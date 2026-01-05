@@ -34,7 +34,7 @@ BNSR/
 - Ingame hit the `Insert` key to open the Plugin Ui
 
 ## Demo Video
-Coming Soon
+[![Watch the demo](https://img.youtube.com/vi/wuWuUMzoFcw/hqdefault.jpg)](https://www.youtube.com/watch?v=wuWuUMzoFcw)
 
 ## Config
 - The config file is located at: `Documents/BNS/animfilter_config.xml`
