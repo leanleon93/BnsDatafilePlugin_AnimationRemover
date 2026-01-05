@@ -1,25 +1,47 @@
 # BnS Animation Filter
 
-## A Blade & Soul NEO datafile plugin to show/hide the skills for specific classes/specializations to provide a cleaner screen in combat without hiding party members.
+## A Blade & Soul NEO plugin to hide the skills for selected classes to provide a cleaner screen in combat without hiding party members.
 
 ## Ingame Gui
 
 <img src="./ingame_gui.png" alt="AnimeFilter Ingame GUI" width="800"/>
 
 ## Features
-- Show/hide skills for specific classes/specializations.
+- Show/hide skills for specific classes.
 - Preset Profiles
-- Reload/switch profiles during gameplay.
+- Switch profiles during gameplay without loading screens.
+- Can completely hide SoulCores 
 - Does not hide party buffs or party protection skills. (Soulburn, Polarity, Uplift, HMB, Stealth proc.)
+- Does not hide projectile resists by default. Can be hidden in config.
 - Does not hide Bard tree by default. Can be hidden in config.
-- Does not hide Assassin taxi by default. Can be hidden in config.
+- Does not hide Assassin taxi flower by default. Can be hidden in config.
 - Does not hide Warlock TD by default. Can be hidden in config.
 
+## Installation
+```
+BNSR/
+└── Binaries/
+    └── Win64/
+        ├── plugins/
+        │   └── DatafilePluginloader.dll
+        └── datafilePlugins/
+            └── AnimationFilter.dll
+```
+- Assumes a basic plugin setup [Bns Unpacked by tomato](https://rentry.co/bns_unpacked)
+- Place [ DatafilePluginloader.dll ](https://github.com/leanleon93/BnsPlugin_DatafilePluginloader/releases/latest) in your plugins folder
+- Create a datafilePlugins folder next to the plugins folder if it doesnt exist yet
+- Place [ AnimationFilter.dll ](https://github.com/leanleon93/BnsDatafilePlugin_AnimationRemover/releases/latest) in your datafilePlugins folder
+- Ingame hit the `Insert` key to open the Plugin Ui
+
+## Demo Video
+Coming Soon
+
 ## Config
-- The config file must be located at: `Documents/BNS/animfilter_config.xml`
-- Please check the example config file for the correct format: [animfilter_config.xml](animfilter_config.xml)
+- The config file is located at: `Documents/BNS/animfilter_config.xml`
+- On first launch a default config will be created.
+- You can also check the example config file: [animfilter_config.xml](animfilter_config.xml)
 - You can add multiple profiles for different scenarios
-- The profiles can also be edited in-game using the pluginloader gui
+- The profiles can be edited in-game using the pluginloader gui (insert key)
 
 ## Extra options
 You can set extra options for a profile.
@@ -27,10 +49,10 @@ You can set extra options for a profile.
 - Hide Assassin taxi
 - Hide Time Distortion
 - Hide Soulcores
+- Hide Projectile Resists
 ```xml
 <extra_options hideSoulCores="true" hideProjectileResists="true" hideTree="true" hideTaxi="true" hideTD="true" />
 ```
-Remove the options you dont want.
 
 ## Dependencies
 - Requires [DatafilePluginloader](https://github.com/leanleon93/BnsPlugin_DatafilePluginloader) to work
