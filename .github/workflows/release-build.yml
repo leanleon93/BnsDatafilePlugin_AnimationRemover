@@ -48,6 +48,13 @@ jobs:
       - name: Ensure Submodules are Updated
         run: git submodule update --init --recursive
         
+      - name: Checkout Live submodule Branch
+        run: |
+          cd BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables
+          git fetch origin
+          git checkout live-server
+          git pull origin live-server
+          
       - name: Calculate next version
         id: get_version
         shell: bash
@@ -115,9 +122,10 @@ jobs:
           fi
         shell: bash
         
-      - name: Rename KR DLL
+      - name: Rename DLLS
         run: |
-          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_LIVE_KR.dll
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter_LIVE.dll
         shell: bash
         
       - name: Commit, tag, and push version bump
@@ -159,8 +167,8 @@ jobs:
       - name: Set DLL paths output
         id: find_dlls
         run: |
-          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
-          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_LIVE.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_LIVE_KR.dll" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Generate release notes
