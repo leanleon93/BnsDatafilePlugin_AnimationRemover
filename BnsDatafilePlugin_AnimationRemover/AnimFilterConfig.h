@@ -13,6 +13,7 @@ struct AnimFilterConfig {
 		bool HideTaxi = false;
 		bool HideGlobalItemSkills = false;
 		bool HideSoulCores = false;
+		bool HideGrabs = false;
 		struct EffectOption {
 			unsigned __int64 Key;
 			std::string Alias;

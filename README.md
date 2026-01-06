@@ -13,7 +13,7 @@
 - Can completely hide SoulCores 
 - Does not hide party buffs or party protection skills. (Soulburn, Polarity, Uplift, HMB, Stealth proc.)
 - Does not hide projectile resists by default. Can be hidden in config.
-- Does not hide Bard tree by default. Can be hidden in config.
+- Does not hide party relevant Grab/Grapple/Fixate animations by default. Can be hidden in config.
 - Does not hide Assassin taxi flower by default. Can be hidden in config.
 - Does not hide Warlock TD by default. Can be hidden in config.
 

@@ -10,6 +10,7 @@
 #include "EU/effect/AAA_effect_RecordBase.h"
 #include "KR/effect/AAA_effect_RecordBase.h"
 #include <atomic>
+#include "AnimFilterConfig.h"
 
 class SkillIdManager {
 	struct SkillIdsForJob {
@@ -36,6 +37,8 @@ public:
 	bool IsSetupComplete() const;
 	bool IsCriticalFail() const;
 	void ResetIdsToFilter();
+	void RemoveSpecialExclusionIds(std::unordered_set<int>& idSet, const AnimFilterConfig::AnimFilterProfile& activeProfile);
+	void RemoveSpecialExclusionEffectIds(std::unordered_set<unsigned __int64>& effectIdSet, const AnimFilterConfig::AnimFilterProfile& activeProfile);
 	const std::unordered_set<int>& GetIdsToFilter() const;
 	const std::unordered_set<int>& GetTaxiSkillIds() const;
 	const std::unordered_map<__int32, __int16>& GetTaxiExclusionIdVariations() const;
@@ -116,6 +119,7 @@ private:
 	Data::DataManager* dataManager;
 	std::atomic<bool> SetupComplete;
 	bool CriticalFail;
+	std::unordered_set<int> GetAllFixedExclusionSkillIds();
 	const std::vector<int> idExclusionList = {
 		66104,
 		66105,
@@ -126,6 +130,130 @@ private:
 		66023,
 		66024,
 		66050
+	};
+
+	const std::unordered_set<int> grabExclusionIds = {
+		//kfm grapple
+		114395,
+		114396,
+
+		//fm phantom grip
+		135139,
+		135145,
+		135151,
+		135160,
+		135167,
+
+		//destro grab (wtf)
+		126000,
+		126001,
+		126002,
+		126003,
+		126004,
+		126005,
+		126006,
+		126007,
+		126008,
+		126009,
+		126010,
+		126011,
+		126012,
+		126013,
+		126014,
+		126015,
+		126016,
+		126017,
+		126018,
+		126019,
+		126020,
+		126021,
+		126022,
+		126023,
+		126024,
+		126025,
+		126026,
+		126027,
+		126028,
+		126029,
+		126030,
+		126031,
+		126032,
+		126033,
+		126034,
+		126035,
+		126036,
+		126037,
+		126038,
+		126039,
+
+		//sin webbing
+		140710,
+		140711,
+		140715,
+		140716,
+
+		//sum grapple
+		155519,
+		155520,
+		155521,
+		155522,
+		155523,
+		155524,
+		155525,
+		155526,
+		155527,
+		155528,
+
+		//bd phantom grip (jesus)
+		165290,
+		165291,
+		165292,
+		165293,
+		165294,
+		165295,
+		165296,
+		165297,
+		165298,
+		165299,
+		165300,
+		165301,
+		165302,
+		165303,
+		165304,
+		165305,
+		165306,
+		165307,
+		165314,
+		165315,
+		165316,
+		165317,
+		165318,
+		165319,
+		165320,
+		165321,
+		165322,
+		165323,
+		165324,
+		165325,
+		165332,
+		165333,
+		165334,
+		165335,
+		165336,
+		165337,
+		165338,
+		165339,
+		165340,
+		165341,
+		165342,
+		165343,
+
+		//spearmaster fixate
+		250060,
+		250061,
+		250062,
+		250063,
+		250064
 	};
 
 	const std::unordered_set<int> projectileResistExclusionIds = {
@@ -214,6 +342,7 @@ private:
 	std::unordered_set<int> soulCoreSkills;
 	std::unordered_map<char, SkillIdsForJob> skillIdsForJobMap;
 	std::unordered_map<char, EffectIdsForJob> effectIdsForJobMap;
+	std::unordered_map<int, std::unordered_set<unsigned __int64>> exclusionEffectIds;
 	std::unordered_set<int> GetAllSkillIdsFromJobMap();
 	std::unordered_set<int> idsToFilter;
 	std::unordered_set<unsigned __int64> effectIdsToFilter;

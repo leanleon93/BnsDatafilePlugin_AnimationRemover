@@ -581,6 +581,16 @@ bool SkillIdManager::SetupAllSkillIds() {
 			return false;
 		}
 	}
+
+	if (versionCheckSuccess.contains(L"skill3") && versionCheckSuccess[L"skill3"]) {
+		const auto skillTable = GetTable(this->dataManager, L"skill3");
+		if (skillTable != nullptr) {
+			for (auto& skillId : GetAllFixedExclusionSkillIds()) {
+				AddEffectsForSkillIds({ skillId }, skillTable, exclusionEffectIds[skillId]);
+			}
+		}
+	}
+
 	if (!SetupSoulCoreSkills()) {
 		return false;
 	}
@@ -799,24 +809,8 @@ void SkillIdManager::ResetIdsToFilter() {
 		idsToFilter.insert(soulCoreSkills.begin(), soulCoreSkills.end());
 	}
 
-	//remove bardTreeExclusionIds from idsToFilter if not hidetree
-	if (!activeProfile.HideTree) {
-		for (auto id : bardTreeExclusionIds) {
-			idsToFilter.erase(id);
-		}
-	}
-	//remove projectileResistExclusionIds from idsToFilter if not hideProjectileResists
-	if (!activeProfile.HideProjectileResists) {
-		for (auto id : projectileResistExclusionIds) {
-			idsToFilter.erase(id);
-		}
-	}
+	RemoveSpecialExclusionIds(idsToFilter, activeProfile);
 
-	if (!activeProfile.HideTimeDistortion) {
-		for (auto id : wlTDExclusionIds) {
-			idsToFilter.erase(id);
-		}
-	}
 	if (activeProfile.HideTaxi) {
 		taxiExclusionIds = {};
 	}
@@ -827,6 +821,73 @@ void SkillIdManager::ResetIdsToFilter() {
 		idsToFilter.insert(skillId);
 	}
 	ResetEffectIdsToFilter();
+}
+
+void SkillIdManager::RemoveSpecialExclusionEffectIds(std::unordered_set<unsigned __int64>&effectIdSet, const AnimFilterConfig::AnimFilterProfile & activeProfile) {
+	//remove bardTreeExclusionIds from idsToFilter if not hidetree
+	if (!activeProfile.HideTree) {
+		for (auto id : bardTreeExclusionIds) {
+			for (auto effectId : exclusionEffectIds[id]) {
+				effectIdSet.erase(effectId);
+			}
+		}
+	}
+	//remove projectileResistExclusionIds from idsToFilter if not hideProjectileResists
+	if (!activeProfile.HideProjectileResists) {
+		for (auto id : projectileResistExclusionIds) {
+			for (auto effectId : exclusionEffectIds[id]) {
+				effectIdSet.erase(effectId);
+			}
+		}
+	}
+
+	//remove grabExclusionIds from idsToFilter if not HideGrabs
+	if (!activeProfile.HideGrabs) {
+		for (auto id : grabExclusionIds) {
+			for (auto effectId : exclusionEffectIds[id]) {
+				effectIdSet.erase(effectId);
+			}
+		}
+	}
+
+	//remove wlTDExclusionIds from idsToFilter if not HideTimeDistortion
+	if (!activeProfile.HideTimeDistortion) {
+		for (auto id : wlTDExclusionIds) {
+			for (auto effectId : exclusionEffectIds[id]) {
+				effectIdSet.erase(effectId);
+			}
+		}
+	}
+}
+
+void SkillIdManager::RemoveSpecialExclusionIds(std::unordered_set<int> &idSet, const AnimFilterConfig::AnimFilterProfile & activeProfile)
+{
+	//remove bardTreeExclusionIds from idsToFilter if not hidetree
+	if (!activeProfile.HideTree) {
+		for (auto id : bardTreeExclusionIds) {
+			idSet.erase(id);
+		}
+	}
+	//remove projectileResistExclusionIds from idsToFilter if not hideProjectileResists
+	if (!activeProfile.HideProjectileResists) {
+		for (auto id : projectileResistExclusionIds) {
+			idSet.erase(id);
+		}
+	}
+
+	//remove grabExclusionIds from idsToFilter if not HideGrabs
+	if (!activeProfile.HideGrabs) {
+		for (auto id : grabExclusionIds) {
+			idSet.erase(id);
+		}
+	}
+
+	//remove wlTDExclusionIds from idsToFilter if not HideTimeDistortion
+	if (!activeProfile.HideTimeDistortion) {
+		for (auto id : wlTDExclusionIds) {
+			idSet.erase(id);
+		}
+	}
 }
 
 static void addEffectIdsForSpec(std::unordered_set<unsigned __int64>&idsToFilter, std::unordered_map<int, std::unordered_set<unsigned __int64>>&effectIdsForSpec, int specIndex) {
@@ -885,6 +946,7 @@ void SkillIdManager::ResetEffectIdsToFilter() {
 			removeEffectIdsForSpec(effectIdsToFilter, effectIdsForJob.EffectIdsForSpec, 3);
 		}
 	}
+	RemoveSpecialExclusionEffectIds(effectIdsToFilter, activeProfile);
 	if (versionCheckSuccess.contains(L"skill3") && versionCheckSuccess[L"skill3"] && !activeProfile.CustomSkillIdFilters.empty()) {
 		const auto table = GetTable(this->dataManager, L"skill3");
 		if (table != nullptr) {
@@ -1013,6 +1075,17 @@ void SkillIdManager::RestoreEffects() {
 	effectRestoreList.clear();
 	effectSwapRestoreList.clear();
 }
+
+std::unordered_set<int> SkillIdManager::GetAllFixedExclusionSkillIds()
+{
+	std::unordered_set<int> allFixedExclusionSkillIds;
+	allFixedExclusionSkillIds.insert(bardTreeExclusionIds.begin(), bardTreeExclusionIds.end());
+	allFixedExclusionSkillIds.insert(projectileResistExclusionIds.begin(), projectileResistExclusionIds.end());
+	allFixedExclusionSkillIds.insert(grabExclusionIds.begin(), grabExclusionIds.end());
+	allFixedExclusionSkillIds.insert(wlTDExclusionIds.begin(), wlTDExclusionIds.end());
+	return allFixedExclusionSkillIds;
+}
+
 #ifdef _BNSEU
 void SkillIdManager::RemoveAnimationsForEffect(EU::effect_Record * effectRecord) {
 #elif _BNSKR

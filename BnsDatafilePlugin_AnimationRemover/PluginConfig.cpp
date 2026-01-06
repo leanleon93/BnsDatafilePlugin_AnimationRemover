@@ -203,6 +203,9 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			if (extraoptionsNode.attribute("hideSoulCores") != nullptr) {
 				profile.HideSoulCores = extraoptionsNode.attribute("hideSoulCores").as_bool();
 			}
+			if (extraoptionsNode.attribute("hideGrabs") != nullptr) {
+				profile.HideGrabs = extraoptionsNode.attribute("hideGrabs").as_bool();
+			}
 		}
 		if (pugi::xml_node textNode = profileNode.child("text"); textNode) {
 			auto text = textNode.text();
@@ -334,6 +337,7 @@ void PluginConfig::SaveToDisk()
 		extraOptionsNode.append_attribute("hideTaxi") = profile.HideTaxi;
 		extraOptionsNode.append_attribute("hideItemSkills") = profile.HideGlobalItemSkills;
 		extraOptionsNode.append_attribute("hideSoulCores") = profile.HideSoulCores;
+		extraOptionsNode.append_attribute("hideGrabs") = profile.HideGrabs;
 
 		// Text
 		if (!profile.Text.empty()) {

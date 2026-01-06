@@ -491,7 +491,7 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Spacing();
 
 	// Booleans
-	g_imgui->Checkbox("Hide Bard Tree", &profile.HideTree);
+	g_imgui->Checkbox("Hide Grab Skills", &profile.HideGrabs);
 	g_imgui->SameLine(0.0f, 10.0f);
 	g_imgui->Checkbox("Hide Time Distortion", &profile.HideTimeDistortion);
 	g_imgui->SameLine(0.0f, 10.0f);
