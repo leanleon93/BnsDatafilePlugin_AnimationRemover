@@ -1,0 +1,198 @@
+name: Release and Build
+
+on:
+  workflow_call:
+    inputs:
+      bump:
+        required: false
+        type: string
+        default: "patch"
+      solution_file_path:
+        required: false
+        type: string
+        default: "."
+      build_configuration_eu:
+        required: false
+        type: string
+        default: "Release"
+      build_configuration_kr:
+        required: false
+        type: string
+        default: "ReleaseKR"
+        
+permissions:
+  contents: write
+  
+env:
+  SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
+  BUILD_CONFIGURATION_EU: ${{ inputs.build_configuration_eu }}
+  BUILD_CONFIGURATION_KR: ${{ inputs.build_configuration_kr }}
+  
+jobs:
+  release-build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: recursive
+          fetch-depth: 0
+          
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+      - name: Ensure Submodules are Updated
+        run: git submodule update --init --recursive
+        
+      - name: Checkout Live submodule Branch
+        run: |
+          cd BnsDatafilePlugin_AnimationRemover/deps/BnsPluginTables
+          git fetch origin
+          git checkout live-server
+          git pull origin live-server
+          
+      - name: Calculate next version
+        id: get_version
+        shell: bash
+        run: |
+          git fetch --tags
+          TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || true)
+          TAG=$(echo "$TAG" | tr -d '[:space:]')
+          echo "[DEBUG] TAG='$TAG'"
+          if [ -z "$TAG" ]; then
+            MAJOR=1; MINOR=0; PATCH=0
+          else
+            VER=${TAG#v}
+            IFS='.' read -r MAJOR MINOR PATCH <<EOF
+          $VER
+          EOF
+            if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+              echo "Failed to parse version! VER='$VER'"
+              exit 1
+            fi
+          fi
+          BUMP="${{ inputs.bump }}"
+          if [ "$BUMP" = "major" ]; then
+            MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0
+          elif [ "$BUMP" = "minor" ]; then
+            MINOR=$((MINOR + 1)); PATCH=0
+          else
+            PATCH=$((PATCH + 1))
+          fi
+          NEW_TAG="v$MAJOR.$MINOR.$PATCH"
+          NEW_VER="$MAJOR.$MINOR.$PATCH"
+          echo "[DEBUG] new_tag=$NEW_TAG new_version=$NEW_VER"
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VER" >> $GITHUB_OUTPUT
+
+      - name: Update PLUGIN_VERSION in plugin_version.h
+        run: |
+          sed -i "s/#define PLUGIN_VERSION \"[0-9.]*\"/#define PLUGIN_VERSION \"${{ steps.get_version.outputs.new_version }}\"/" BnsDatafilePlugin_AnimationRemover/plugin_version.h
+          echo "=== plugin_version.h after edit ==="
+          cat BnsDatafilePlugin_AnimationRemover/plugin_version.h
+        shell: bash
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+        with:
+          msbuild-architecture: x64
+        
+      - name: Build ReleaseEU
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_EU }} ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Build ReleaseKR
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_KR }} ${{ env.SOLUTION_FILE_PATH }}
+        
+      - name: Verify DLLs built
+        id: verify_dlls
+        run: |
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" ]; then
+            echo "EU DLL not found! Build failed or wrong path."
+            exit 1
+          fi
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll" ]; then
+            echo "KR DLL not found! Build failed or wrong path."
+            exit 1
+          fi
+        shell: bash
+        
+      - name: Rename DLLS
+        run: |
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_LIVE_KR.dll
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_LIVE.dll
+        shell: bash
+        
+      - name: Commit, tag, and push version bump
+        run: |
+          # Ensure we have the latest master
+          git fetch origin master
+
+          # Stash any local changes (including untracked) so pull/rebase won't fail
+          STASH_MSG="pre-release-bump-$(date +%s)"
+          git stash push -u -m "$STASH_MSG" || true
+
+          # Rebase onto origin/master
+          git pull --rebase origin master
+
+          # Restore stashed changes; if there are conflicts, stash pop will return non-zero
+          git stash pop || true
+
+          # Only commit if there are changes
+          if [ -n "$(git status --porcelain)" ]; then
+            git add BnsDatafilePlugin_AnimationRemover/plugin_version.h
+            git commit -m "Bump PLUGIN_VERSION to ${{ steps.get_version.outputs.new_version }}" || true
+          else
+            echo "No changes to commit."
+          fi
+
+          # Create tag if it doesn't already exist
+          TAG="${{ steps.get_version.outputs.new_tag }}"
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Tag $TAG already exists, skipping tag creation."
+          else
+            git tag "$TAG"
+          fi
+
+          # Push commits and tags
+          git push origin HEAD --follow-tags || git push origin HEAD || true
+          git push origin "$TAG" || true
+        shell: bash
+        
+      - name: Set DLL paths output
+        id: find_dlls
+        run: |
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_LIVE.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_LIVE_KR.dll" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          PREV_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -2 | tail -1 || true)
+          if [ -z "$PREV_TAG" ]; then
+            git log --oneline > release_notes.txt
+          else
+            git log --oneline "$PREV_TAG"..HEAD > release_notes.txt
+          fi
+          echo "RELEASE_BODY<<EOF" >> $GITHUB_ENV
+          cat release_notes.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.get_version.outputs.new_tag }}
+          name: Release ${{ steps.get_version.outputs.new_tag }}
+          body: ${{ env.RELEASE_BODY }}
+          files: |
+            ${{ steps.find_dlls.outputs.dll_path_eu }}
+            ${{ steps.find_dlls.outputs.dll_path_kr }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
