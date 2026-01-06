@@ -100,6 +100,7 @@ std::unordered_set<int> SkillIdManager::GetNeoChildSkillIds2(int id) {
 	if (table == nullptr) return {};
 	auto innerIter = table->__vftable->createInnerIter(table);
 	std::unordered_set<int> childIds;
+	if (innerIter == nullptr) return childIds; //On live server its empty
 	do {
 		if (!innerIter->_vtptr->IsValid(innerIter)) continue;
 #ifdef _BNSEU
@@ -143,6 +144,7 @@ std::unordered_set<int> SkillIdManager::GetNeoChildSkillIds(int id) {
 	if (table == nullptr) return {};
 	auto innerIter = table->__vftable->createInnerIter(table);
 	std::unordered_set<int> childIds;
+	if (innerIter == nullptr) return childIds; //On live server its empty
 	do {
 		if (!innerIter->_vtptr->IsValid(innerIter)) continue;
 #ifdef _BNSEU
