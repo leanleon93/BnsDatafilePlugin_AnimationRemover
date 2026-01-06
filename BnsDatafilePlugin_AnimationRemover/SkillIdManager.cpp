@@ -420,6 +420,118 @@ std::unordered_set<unsigned __int64> SkillIdManager::GetEffectIdsForEffectGroup(
 	return effectIds;
 }
 
+void SkillIdManager::AddEffectsForSkillIds(const std::unordered_set<int>&skillIds, DrMultiKeyTable* const table, std::unordered_set<unsigned long long>&effectSet)
+{
+	for (auto id : skillIds) {
+		auto innerIter = table->__vftable->createInnerIter(table);
+		do {
+			if (!innerIter->_vtptr->IsValid(innerIter)) continue;
+#ifdef _BNSEU
+			auto record = (EU::skill3_Record*)innerIter->_vtptr->Ptr(innerIter);
+#elif _BNSKR
+			auto record = (KR::skill3_Record*)innerIter->_vtptr->Ptr(innerIter);
+#endif
+			if (record == nullptr) continue;
+			if (record->key.id != id) continue;
+#ifdef _BNSEU
+			if (record->subtype != (__int16)EU::skill3_RecordSubType::skill3_record_sub_active_skill) continue;
+#elif _BNSKR
+			if (record->subtype != (__int16)KR::skill3_RecordSubType::skill3_record_sub_active_skill) continue;
+#endif
+			bool breakOuter = false;
+			for (auto const& systematization : record->systematization) {
+				if (systematization.Key == 0) continue;
+				if (systematization.Key == 30 || systematization.Key == 31 || systematization.Key == 32) { //skip party buff and protect skills
+					breakOuter = true;
+					break;
+				}
+			}
+			if (breakOuter) continue;
+#ifdef _BNSEU
+			auto activeSkillRecord = (EU::skill3_active_skill_Record*)record;
+#elif _BNSKR
+			auto activeSkillRecord = (KR::skill3_active_skill_Record*)record;
+#endif
+			for (auto passiveEffect : activeSkillRecord->passive_effect) {
+				if (passiveEffect.Key == 0) continue;
+				effectSet.insert(passiveEffect.Key);
+			}
+			for (auto castEffect : activeSkillRecord->cast_effect) {
+				if (castEffect.Key == 0) continue;
+				effectSet.insert(castEffect.Key);
+			}
+
+			for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_1) {
+				if (swing_caster_effect.Key == 0) continue;
+				effectSet.insert(swing_caster_effect.Key);
+			}
+			for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_2) {
+				if (swing_caster_effect.Key == 0) continue;
+				effectSet.insert(swing_caster_effect.Key);
+			}
+			for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_3) {
+				if (swing_caster_effect.Key == 0) continue;
+				effectSet.insert(swing_caster_effect.Key);
+			}
+			for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_4) {
+				if (swing_caster_effect.Key == 0) continue;
+				effectSet.insert(swing_caster_effect.Key);
+			}
+			for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_5) {
+				if (swing_caster_effect.Key == 0) continue;
+				effectSet.insert(swing_caster_effect.Key);
+			}
+
+			for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_1) {
+				if (execCasterEffect.Key == 0) continue;
+				effectSet.insert(execCasterEffect.Key);
+			}
+			for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_2) {
+				if (execCasterEffect.Key == 0) continue;
+				effectSet.insert(execCasterEffect.Key);
+			}
+			for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_3) {
+				if (execCasterEffect.Key == 0) continue;
+				effectSet.insert(execCasterEffect.Key);
+			}
+			for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_4) {
+				if (execCasterEffect.Key == 0) continue;
+				effectSet.insert(execCasterEffect.Key);
+			}
+			for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_5) {
+				if (execCasterEffect.Key == 0) continue;
+				effectSet.insert(execCasterEffect.Key);
+			}
+			for (auto execEffectGroupId : activeSkillRecord->exec_effect_1) {
+				if (execEffectGroupId.Key == 0) continue;
+				auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
+				effectSet.insert(effectIds.begin(), effectIds.end());
+			}
+			for (auto execEffectGroupId : activeSkillRecord->exec_effect_2) {
+				if (execEffectGroupId.Key == 0) continue;
+				auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
+				effectSet.insert(effectIds.begin(), effectIds.end());
+			}
+			for (auto execEffectGroupId : activeSkillRecord->exec_effect_3) {
+				if (execEffectGroupId.Key == 0) continue;
+				auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
+				effectSet.insert(effectIds.begin(), effectIds.end());
+			}
+			for (auto execEffectGroupId : activeSkillRecord->exec_effect_4) {
+				if (execEffectGroupId.Key == 0) continue;
+				auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
+				effectSet.insert(effectIds.begin(), effectIds.end());
+			}
+			for (auto execEffectGroupId : activeSkillRecord->exec_effect_5) {
+				if (execEffectGroupId.Key == 0) continue;
+				auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
+				effectSet.insert(effectIds.begin(), effectIds.end());
+			}
+		} while (innerIter->_vtptr->Next(innerIter));
+		//table->__vftable->removeInnerIter(table, innerIter);
+	}
+}
+
 bool SkillIdManager::SetupEffectIdsForJob(char jobId) {
 	if (!versionCheckSuccess.contains(L"skill3") || !versionCheckSuccess[L"skill3"]) {
 		return false;
@@ -442,114 +554,7 @@ bool SkillIdManager::SetupEffectIdsForJob(char jobId) {
 				effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(fixedEffectIdsForSpec->second.begin(), fixedEffectIdsForSpec->second.end());
 			}
 		}
-		for (auto id : skillIds) {
-			auto innerIter = table->__vftable->createInnerIter(table);
-			do {
-				if (!innerIter->_vtptr->IsValid(innerIter)) continue;
-#ifdef _BNSEU
-				auto record = (EU::skill3_Record*)innerIter->_vtptr->Ptr(innerIter);
-#elif _BNSKR
-				auto record = (KR::skill3_Record*)innerIter->_vtptr->Ptr(innerIter);
-#endif
-				if (record == nullptr) continue;
-				if (record->key.id != id) continue;
-#ifdef _BNSEU
-				if (record->subtype != (__int16)EU::skill3_RecordSubType::skill3_record_sub_active_skill) continue;
-#elif _BNSKR
-				if (record->subtype != (__int16)KR::skill3_RecordSubType::skill3_record_sub_active_skill) continue;
-#endif
-				bool breakOuter = false;
-				for (auto const& systematization : record->systematization) {
-					if (systematization.Key == 0) continue;
-					if (systematization.Key == 30 || systematization.Key == 31 || systematization.Key == 32) { //skip party buff and protect skills
-						breakOuter = true;
-						break;
-					}
-				}
-				if (breakOuter) continue;
-#ifdef _BNSEU
-				auto activeSkillRecord = (EU::skill3_active_skill_Record*)record;
-#elif _BNSKR
-				auto activeSkillRecord = (KR::skill3_active_skill_Record*)record;
-#endif
-				for (auto passiveEffect : activeSkillRecord->passive_effect) {
-					if (passiveEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(passiveEffect.Key);
-				}
-				for (auto castEffect : activeSkillRecord->cast_effect) {
-					if (castEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(castEffect.Key);
-				}
-
-				for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_1) {
-					if (swing_caster_effect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(swing_caster_effect.Key);
-				}
-				for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_2) {
-					if (swing_caster_effect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(swing_caster_effect.Key);
-				}
-				for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_3) {
-					if (swing_caster_effect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(swing_caster_effect.Key);
-				}
-				for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_4) {
-					if (swing_caster_effect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(swing_caster_effect.Key);
-				}
-				for (auto swing_caster_effect : activeSkillRecord->swing_caster_effect_5) {
-					if (swing_caster_effect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(swing_caster_effect.Key);
-				}
-
-				for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_1) {
-					if (execCasterEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(execCasterEffect.Key);
-				}
-				for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_2) {
-					if (execCasterEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(execCasterEffect.Key);
-				}
-				for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_3) {
-					if (execCasterEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(execCasterEffect.Key);
-				}
-				for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_4) {
-					if (execCasterEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(execCasterEffect.Key);
-				}
-				for (auto execCasterEffect : activeSkillRecord->exec_caster_effect_5) {
-					if (execCasterEffect.Key == 0) continue;
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(execCasterEffect.Key);
-				}
-				for (auto execEffectGroupId : activeSkillRecord->exec_effect_1) {
-					if (execEffectGroupId.Key == 0) continue;
-					auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(effectIds.begin(), effectIds.end());
-				}
-				for (auto execEffectGroupId : activeSkillRecord->exec_effect_2) {
-					if (execEffectGroupId.Key == 0) continue;
-					auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(effectIds.begin(), effectIds.end());
-				}
-				for (auto execEffectGroupId : activeSkillRecord->exec_effect_3) {
-					if (execEffectGroupId.Key == 0) continue;
-					auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(effectIds.begin(), effectIds.end());
-				}
-				for (auto execEffectGroupId : activeSkillRecord->exec_effect_4) {
-					if (execEffectGroupId.Key == 0) continue;
-					auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(effectIds.begin(), effectIds.end());
-				}
-				for (auto execEffectGroupId : activeSkillRecord->exec_effect_5) {
-					if (execEffectGroupId.Key == 0) continue;
-					auto effectIds = GetEffectIdsForEffectGroup(execEffectGroupId.Key);
-					effectIdsForJobEntry.EffectIdsForSpec[specIndex].insert(effectIds.begin(), effectIds.end());
-				}
-			} while (innerIter->_vtptr->Next(innerIter));
-			//table->__vftable->removeInnerIter(table, innerIter);
-		}
+		AddEffectsForSkillIds(skillIds, table, effectIdsForJobEntry.EffectIdsForSpec[specIndex]);
 	}
 	effectIdsForJobMap[jobId] = effectIdsForJobEntry;
 	return true;
@@ -818,6 +823,9 @@ void SkillIdManager::ResetIdsToFilter() {
 	else {
 		taxiExclusionIds = defaultTaxiExclusionIds;
 	}
+	for (const auto& [skillId, text] : activeProfile.CustomSkillIdFilters) {
+		idsToFilter.insert(skillId);
+	}
 	ResetEffectIdsToFilter();
 }
 
@@ -875,6 +883,16 @@ void SkillIdManager::ResetEffectIdsToFilter() {
 		if (!jobOption.HideSpec3)
 		{
 			removeEffectIdsForSpec(effectIdsToFilter, effectIdsForJob.EffectIdsForSpec, 3);
+		}
+	}
+	if (versionCheckSuccess.contains(L"skill3") && versionCheckSuccess[L"skill3"] && !activeProfile.CustomSkillIdFilters.empty()) {
+		const auto table = GetTable(this->dataManager, L"skill3");
+		if (table != nullptr) {
+			std::unordered_set<int> skillIdSet = { };
+			for (auto const& [id, text] : activeProfile.CustomSkillIdFilters) {
+				skillIdSet.insert(id);
+			}
+			AddEffectsForSkillIds(skillIdSet, table, effectIdsToFilter);
 		}
 	}
 }

@@ -46,6 +46,7 @@ struct AnimFilterConfig {
 		};
 		std::vector<EffectOption> EffectFilters;
 		std::vector<SkillOption> SkillFilters;
+		std::unordered_map<int, std::string> CustomSkillIdFilters;
 		std::vector<SwapGroup> AnimationSwapGroups;
 		std::unordered_map<__int32, SwapOption> AnimationSwaps;
 		std::unordered_map<int, EffectSwapOption> EffectSwaps;

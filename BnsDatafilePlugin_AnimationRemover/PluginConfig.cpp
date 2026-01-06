@@ -143,6 +143,20 @@ int PluginConfig::GetActiveProfileId()
 	return -1;
 }
 
+void PluginConfig::AddCustomSkillId(int profileId, int id, std::string text)
+{
+	if (auto it = AnimFilterConfig.Profiles.find(profileId); it != AnimFilterConfig.Profiles.end()) {
+		it->second.CustomSkillIdFilters[id] = text;
+	}
+}
+
+void PluginConfig::RemoveCustomSkillId(int profileId, int id)
+{
+	if (auto it = AnimFilterConfig.Profiles.find(profileId); it != AnimFilterConfig.Profiles.end()) {
+		it->second.CustomSkillIdFilters.erase(id);
+	}
+}
+
 std::string PluginConfig::GetDocumentsDirectory() {
 	char* userProfile = nullptr;
 	size_t len = 0;
@@ -244,6 +258,13 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			skillOption.HideSpec2 = skillOptionNode.attribute("hideSpec2").as_bool();
 			skillOption.HideSpec3 = skillOptionNode.attribute("hideSpec3").as_bool();
 			profile.SkillFilters.push_back(skillOption);
+		}
+		//CustomSkillIdFilters
+		profile.CustomSkillIdFilters.clear();
+		for (pugi::xml_node customSkillOptionNode : profileNode.child("custom_skill_options").children("option")) {
+			auto skillId = customSkillOptionNode.attribute("id").as_int();
+			auto text = customSkillOptionNode.attribute("text").as_string();
+			profile.CustomSkillIdFilters[skillId] = text;
 		}
 		animFilterConfig->Profiles[profileId] = profile;
 	}
@@ -367,6 +388,13 @@ void PluginConfig::SaveToDisk()
 			optionNode.append_attribute("hideSpec1") = skillOption.HideSpec1;
 			optionNode.append_attribute("hideSpec2") = skillOption.HideSpec2;
 			optionNode.append_attribute("hideSpec3") = skillOption.HideSpec3;
+		}
+		// Custom Skill ID Filters
+		xml_node customSkillOptionsNode = profileNode.append_child("custom_skill_options");
+		for (const auto& [skillId, text] : profile.CustomSkillIdFilters) {
+			xml_node optionNode = customSkillOptionsNode.append_child("option");
+			optionNode.append_attribute("id") = skillId;
+			optionNode.append_attribute("text") = text.c_str();
 		}
 	}
 	pugi::xml_node decl = doc.prepend_child(pugi::node_declaration);

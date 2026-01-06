@@ -110,6 +110,7 @@ public:
 		{ 15, false },
 		{ 16, false}
 	};
+	void RestoreEffects();
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;
@@ -224,6 +225,7 @@ private:
 	bool SetupAllSkillIds();
 	bool SetupSkillShowTableId();
 	bool SetupSkillIdsForJob(char jobId);
+	void AddEffectsForSkillIds(const std::unordered_set<int>& skillIds, DrMultiKeyTable* const table, std::unordered_set<unsigned long long>& effectSet);
 	bool SetupEffectIdsForJob(char jobId);
 #if _BNSEU
 	void AddIds(BnsTables::EU::skill_trait_Record const* record, int const* ids, int size, SkillIdsForJob& skillIdsForJobEntry);
@@ -249,7 +251,6 @@ private:
 	bool IsBraceletId(int id);
 	void AddItemSkills(SkillIdsForJob& skillIdsForJobEntry);
 	std::unordered_set<int> GetItemSkills(int id);
-	void RestoreEffects();
 	void RemoveEffects();
 	void SwapEffects();
 

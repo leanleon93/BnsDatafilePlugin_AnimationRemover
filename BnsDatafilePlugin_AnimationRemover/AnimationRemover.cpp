@@ -530,6 +530,45 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Separator();
 	g_imgui->Spacing();
 
+	if (g_imgui->CollapsingHeader("Hide specific skills by id")) {
+		g_imgui->TextColored(0.6f, 0.6f, 0.6f, 1.0f, "These overrule all other settings.");
+		g_imgui->Spacing();
+		int idx = 0;
+		for (auto& [skillId, text] : profile.CustomSkillIdFilters) {
+			g_imgui->PushIdInt(idx);
+			g_imgui->Indent(10.0f);
+			std::string skillText = text.empty()
+				? ""
+				: ("(" + text + ")");
+			g_imgui->Text("Skill: %d %s", skillId, skillText.c_str());
+			g_imgui->SameLineDefault();
+			if (g_imgui->SmallButton("Remove")) {
+				g_PluginConfig->RemoveCustomSkillId(selectedProfileId, skillId);
+				g_imgui->Unindent(10.0f);
+				g_imgui->PopId();
+				break;
+			}
+			g_imgui->Unindent(10.0f);
+			g_imgui->PopId();
+			++idx;
+		}
+		g_imgui->Spacing();
+		static char newSkillIdBuf[16] = {};
+		static char newSkillTextBuf[128] = {};
+		g_imgui->InputText("Skill Id", newSkillIdBuf, sizeof(newSkillIdBuf));
+		g_imgui->InputText("Text (optional)", newSkillTextBuf, sizeof(newSkillTextBuf));
+		if (g_imgui->Button("Add")) {
+			int newSkillId = atoi(newSkillIdBuf);
+			if (newSkillId != 0) {
+				g_PluginConfig->AddCustomSkillId(selectedProfileId, newSkillId, std::string(newSkillTextBuf));
+				newSkillIdBuf[0] = '\0';
+				newSkillTextBuf[0] = '\0';
+			}
+		}
+	}
+	g_imgui->Spacing();
+	g_imgui->Separator();
+	g_imgui->Spacing();
 	static bool saveFeedback = false;
 	static int saveFeedbackFrames = 0;
 	const int FEEDBACK_DISPLAY_FRAMES = 120; // ~2 seconds at 60 FPS
@@ -689,6 +728,14 @@ static void __fastcall Init(PluginInitParams* params) {
 }
 
 static void __fastcall Unregister() {
+	//disable and restore all effects before unload
+	if (g_PluginConfig && g_SkillIdManager) {
+		g_PluginConfig->SetEnabled(false);
+		g_SkillIdManager->ResetIdsToFilter();
+		g_SkillIdManager->ReapplyEffectFilters();
+		ReloadSkillShow3();
+	}
+
 	if (g_unregister && g_panelHandle != 0) {
 		g_unregister(g_panelHandle);
 		g_panelHandle = 0;

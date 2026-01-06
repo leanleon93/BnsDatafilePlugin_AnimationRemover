@@ -20,6 +20,8 @@ public:
 	void SetDefaultProfile(int profileId);
 	std::wstring& GetDefaultProfileName();
 	int GetActiveProfileId();
+	void AddCustomSkillId(int profileId, int id, std::string text);
+	void RemoveCustomSkillId(int profileId, int id);
 private:
 	std::filesystem::path ConfigPath;
 	bool Loaded;
