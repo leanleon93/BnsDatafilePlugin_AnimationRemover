@@ -125,7 +125,7 @@ jobs:
       - name: Rename DLLS
         run: |
           cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_LIVE_KR.dll
-          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseEUX64/AnimationFilter_LIVE.dll
+          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_LIVE.dll
         shell: bash
         
       - name: Commit, tag, and push version bump
