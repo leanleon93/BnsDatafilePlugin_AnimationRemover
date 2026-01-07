@@ -235,49 +235,49 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugLive|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugKR|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugLiveKR|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter_NEO</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLive|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter_LIVE</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseKR|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter_NEO_KR</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLiveKR|x64'">
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</OutDir>
     <IntDir>$(SolutionDir)obj\$(ProjectName)\$(Configuration)$(PlatformShortName.ToUpper())\</IntDir>
-    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;.\deps\BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
+    <IncludePath>.\deps\DatafilePluginSdk\BnsPlugin;$(SolutionDir)BnsPluginTables;.\deps;$(IncludePath)</IncludePath>
     <TargetName>AnimationFilter_LIVE_KR</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
