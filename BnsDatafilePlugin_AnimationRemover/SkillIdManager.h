@@ -2,13 +2,24 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <string>
-#include "EU/skillshow3/AAA_skillshow3_RecordBase.h"
-#include "KR/skillshow3/AAA_skillshow3_RecordBase.h"
+
+#ifdef _BNSLIVE
+#include "LIVE/Generated/include/EU/skillshow3/AAA_skillshow3_RecordBase.h"
+#include "LIVE/Generated/include/KR/skillshow3/AAA_skillshow3_RecordBase.h"
+#include "LIVE/Generated/include/EU/skill_trait/AAA_skill_trait_RecordBase.h"
+#include "LIVE/Generated/include/KR/skill_trait/AAA_skill_trait_RecordBase.h"
+#include "LIVE/Generated/include/EU/effect/AAA_effect_RecordBase.h"
+#include "LIVE/Generated/include/KR/effect/AAA_effect_RecordBase.h"
+#else
+#include "NEO/Generated/include/EU/skillshow3/AAA_skillshow3_RecordBase.h"
+#include "NEO/Generated/include/KR/skillshow3/AAA_skillshow3_RecordBase.h"
+#include "NEO/Generated/include/EU/skill_trait/AAA_skill_trait_RecordBase.h"
+#include "NEO/Generated/include/KR/skill_trait/AAA_skill_trait_RecordBase.h"
+#include "NEO/Generated/include/EU/effect/AAA_effect_RecordBase.h"
+#include "NEO/Generated/include/KR/effect/AAA_effect_RecordBase.h"
+#endif
+
 #include "Data.h"
-#include "EU/skill_trait/AAA_skill_trait_RecordBase.h"
-#include "KR/skill_trait/AAA_skill_trait_RecordBase.h"
-#include "EU/effect/AAA_effect_RecordBase.h"
-#include "KR/effect/AAA_effect_RecordBase.h"
 #include <atomic>
 #include "AnimFilterConfig.h"
 

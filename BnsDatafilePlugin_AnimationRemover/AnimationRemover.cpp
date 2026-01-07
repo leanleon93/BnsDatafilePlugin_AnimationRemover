@@ -1,16 +1,29 @@
 #include "DatafilePluginsdk.h"
 #include "PluginConfig.h"
 #include "SkillIdManager.h"
-#include <EU/BnsTableNames.h>
-#include <KR/BnsTableNames.h>
-#include <EU/skillshow3/AAA_skillshow3_RecordBase.h>
-#include <KR/skillshow3/AAA_skillshow3_RecordBase.h>
-#include <EU/phantomsword3/AAA_phantomsword3_RecordBase.h>
-#include <KR/phantomsword3/AAA_phantomsword3_RecordBase.h>
-#include <EU/job/AAA_job_RecordBase.h>
-#include <KR/job/AAA_job_RecordBase.h>
-#include <EU/stance/AAA_stance_RecordBase.h>
-#include <KR/stance/AAA_stance_RecordBase.h>
+#ifdef _BNSLIVE
+#include <LIVE/Generated/include/EU/BnsTableNames.h>
+#include <LIVE/Generated/include/KR/BnsTableNames.h>
+#include <LIVE/Generated/include/EU/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <LIVE/Generated/include/KR/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <LIVE/Generated/include/EU/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <LIVE/Generated/include/KR/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <LIVE/Generated/include/EU/job/AAA_job_RecordBase.h>
+#include <LIVE/Generated/include/KR/job/AAA_job_RecordBase.h>
+#include <LIVE/Generated/include/EU/stance/AAA_stance_RecordBase.h>
+#include <LIVE/Generated/include/KR/stance/AAA_stance_RecordBase.h>
+#else
+#include <NEO/Generated/include/EU/BnsTableNames.h>
+#include <NEO/Generated/include/KR/BnsTableNames.h>
+#include <NEO/Generated/include/EU/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <NEO/Generated/include/KR/skillshow3/AAA_skillshow3_RecordBase.h>
+#include <NEO/Generated/include/EU/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <NEO/Generated/include/KR/phantomsword3/AAA_phantomsword3_RecordBase.h>
+#include <NEO/Generated/include/EU/job/AAA_job_RecordBase.h>
+#include <NEO/Generated/include/KR/job/AAA_job_RecordBase.h>
+#include <NEO/Generated/include/EU/stance/AAA_stance_RecordBase.h>
+#include <NEO/Generated/include/KR/stance/AAA_stance_RecordBase.h>
+#endif
 #include <string>
 #include "plugin_version.h"
 
@@ -491,39 +504,96 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Spacing();
 
 	// Booleans
+#ifndef _BNSLIVE
 	g_imgui->Checkbox("Hide Grab Skills", &profile.HideGrabs);
 	g_imgui->SameLine(0.0f, 10.0f);
+#endif
 	g_imgui->Checkbox("Hide Time Distortion", &profile.HideTimeDistortion);
 	g_imgui->SameLine(0.0f, 10.0f);
 	g_imgui->Checkbox("Hide Taxi", &profile.HideTaxi);
 
 	g_imgui->Checkbox("Hide Global Item Skills", &profile.HideGlobalItemSkills);
 	g_imgui->SameLine(0.0f, 10.0f);
+#ifdef _BNSLIVE
+	g_imgui->Checkbox("Hide Bard Tree", &profile.HideTree);
+#else
 	g_imgui->Checkbox("Hide Soul Cores", &profile.HideSoulCores);
+#endif
+#ifndef _BNSLIVE
 	g_imgui->SameLine(0.0f, 10.0f);
 	g_imgui->Checkbox("Hide Projectile Resists", &profile.HideProjectileResists);
+#endif
 	g_imgui->Spacing();
 
 	//Skill options
 	if (g_imgui->CollapsingHeader("Show skill animations for ")) {
 		g_imgui->Spacing();
 		int idx = 0;
+#ifdef _BNSLIVE
+		// Set up 4 columns: Job, 1st Spec, 2nd Spec, 3rd Spec
+		g_imgui->Columns(4, nullptr, false);
+		g_imgui->Text("Job"); g_imgui->NextColumn();
+		g_imgui->Text("1st Spec"); g_imgui->NextColumn();
+		g_imgui->Text("2nd Spec"); g_imgui->NextColumn();
+		g_imgui->Text("3rd Spec"); g_imgui->NextColumn();
+
+#endif
 		for (auto& skill : profile.SkillFilters) {
+#ifdef _BNSLIVE
+			if (skill.Job == 13) { //skip live spearmaster
+				continue;
+			}
+#else
 			if (g_SkillIdManager->neoJobAvailability.at(skill.Job) == false) {
 				continue;
 			}
+#endif
 			g_imgui->PushIdInt(idx);
+#ifndef _BNSLIVE
 			g_imgui->Indent(10.0f);
+#endif
+#ifdef _BNSLIVE
+			// Job name
+			g_imgui->Text("%s", WStringToString(skill.Name).c_str());
+			g_imgui->NextColumn();
+
+			// 1st Spec
+			bool showSpec1 = !skill.HideSpec1;
+			if (g_imgui->Checkbox("##Spec1", &showSpec1)) {
+				skill.HideSpec1 = !showSpec1;
+			}
+			g_imgui->NextColumn();
+
+			// 2nd Spec
+			bool showSpec2 = !skill.HideSpec2;
+			if (g_imgui->Checkbox("##Spec2", &showSpec2)) {
+				skill.HideSpec2 = !showSpec2;
+			}
+			g_imgui->NextColumn();
+
+			// 3rd Spec
+			bool showSpec3 = !skill.HideSpec3;
+			if (g_imgui->Checkbox("##Spec3", &showSpec3)) {
+				skill.HideSpec3 = !showSpec3;
+			}
+			g_imgui->NextColumn();
+#else
 			bool showAll = !skill.HideSpec1 && !skill.HideSpec2 && !skill.HideSpec3;
 			if (g_imgui->Checkbox(WStringToString(skill.Name).c_str(), &showAll)) {
 				skill.HideSpec1 = !showAll;
 				skill.HideSpec2 = !showAll;
 				skill.HideSpec3 = !showAll;
 			}
+#endif
+#ifndef _BNSLIVE
 			g_imgui->Unindent(10.0f);
+#endif
 			g_imgui->PopId();
 			++idx;
 		}
+#ifdef _BNSLIVE
+		g_imgui->Columns(1, nullptr, false); // Reset to single column
+#endif
 	}
 
 	g_imgui->Spacing();

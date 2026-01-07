@@ -19,6 +19,14 @@ on:
         required: false
         type: string
         default: "ReleaseKR"
+      build_configuration_live_eu:
+        required: false
+        type: string
+        default: "ReleaseLive"
+      build_configuration_live_kr:
+        required: false
+        type: string
+        default: "ReleaseLiveKR"
         
 permissions:
   contents: write
@@ -27,6 +35,8 @@ env:
   SOLUTION_FILE_PATH: ${{ inputs.solution_file_path }}
   BUILD_CONFIGURATION_EU: ${{ inputs.build_configuration_eu }}
   BUILD_CONFIGURATION_KR: ${{ inputs.build_configuration_kr }}
+  BUILD_CONFIGURATION_LIVE_EU: ${{ inputs.build_configuration_live_eu }}
+  BUILD_CONFIGURATION_LIVE_KR: ${{ inputs.build_configuration_live_kr }}
   
 jobs:
   release-build:
@@ -102,22 +112,33 @@ jobs:
         working-directory: ${{ env.GITHUB_WORKSPACE }}
         run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_KR }} ${{ env.SOLUTION_FILE_PATH }}
         
+      - name: Build ReleaseLiveEU
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_LIVE_EU }} ${{ env.SOLUTION_FILE_PATH }}
+
+      - name: Build ReleaseLiveKR
+        working-directory: ${{ env.GITHUB_WORKSPACE }}
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION_LIVE_KR }} ${{ env.SOLUTION_FILE_PATH }}
+
       - name: Verify DLLs built
         id: verify_dlls
         run: |
-          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" ]; then
-            echo "EU DLL not found! Build failed or wrong path."
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_NEO.dll" ]; then
+            echo "EU NEO DLL not found! Build failed or wrong path."
             exit 1
           fi
-          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll" ]; then
-            echo "KR DLL not found! Build failed or wrong path."
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_NEO_KR.dll" ]; then
+            echo "KR NEO DLL not found! Build failed or wrong path."
             exit 1
           fi
-        shell: bash
-        
-      - name: Rename KR DLL
-        run: |
-          cp bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter.dll bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseLiveX64/AnimationFilter_LIVE.dll" ]; then
+            echo "EU Live DLL not found! Build failed or wrong path."
+            exit 1
+          fi
+          if [ ! -f "bin/BnsDatafilePlugin_AnimationRemover/ReleaseLiveKRX64/AnimationFilter_LIVE_KR.dll" ]; then
+            echo "KR Live DLL not found! Build failed or wrong path."
+            exit 1
+          fi
         shell: bash
         
       - name: Commit, tag, and push version bump
@@ -159,8 +180,10 @@ jobs:
       - name: Set DLL paths output
         id: find_dlls
         run: |
-          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter.dll" >> $GITHUB_OUTPUT
-          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_KR.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseX64/AnimationFilter_NEO.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_live_eu=bin/BnsDatafilePlugin_AnimationRemover/ReleaseLiveX64/AnimationFilter_LIVE.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseKRX64/AnimationFilter_NEO_KR.dll" >> $GITHUB_OUTPUT
+          echo "dll_path_live_kr=bin/BnsDatafilePlugin_AnimationRemover/ReleaseLiveKRX64/AnimationFilter_LIVE_KR.dll" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Generate release notes
@@ -186,5 +209,7 @@ jobs:
           files: |
             ${{ steps.find_dlls.outputs.dll_path_eu }}
             ${{ steps.find_dlls.outputs.dll_path_kr }}
+            ${{ steps.find_dlls.outputs.dll_path_live_eu }}
+            ${{ steps.find_dlls.outputs.dll_path_live_kr }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -21,7 +21,11 @@ PluginConfig::PluginConfig()
 void PluginConfig::Initialize()
 {
 	AnimFilterConfig = {};
+#ifdef _BNSLIVE
+	ConfigPath = PluginConfig::GetDocumentsDirectory() + "\\BnS\\animfilter_config_live.xml";
+#else
 	ConfigPath = PluginConfig::GetDocumentsDirectory() + "\\BnS\\animfilter_config.xml";
+#endif
 }
 
 void PluginConfig::CreateDefaultConfigFile()
@@ -38,8 +42,14 @@ void PluginConfig::CreateDefaultConfigFile()
 	int index = 1;
 	for (const auto& [jobName, jobId] : sortedJobNames)
 	{
+#ifdef _BNSLIVE
+		if (jobId == 13) { //skip live spearmaster
+			continue;
+		}
+#else
 		if (g_SkillIdManager->neoJobAvailability.at(jobId) == false)
 			continue;
+#endif // !_BNSLIVE
 		AnimFilterConfig::AnimFilterProfile profile;
 		profile.Name = std::to_string(index);
 		profile.Text = L"Only " + g_SkillIdManager->customJobAbbreviations.at(jobId);
@@ -49,6 +59,7 @@ void PluginConfig::CreateDefaultConfigFile()
 		profile.HideTaxi = false;
 		profile.HideGlobalItemSkills = false;
 		profile.HideSoulCores = false;
+		profile.HideGrabs = false;
 		profile.SkillFilters = {};
 		for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
 		{
@@ -86,6 +97,7 @@ void PluginConfig::AddHideShowAllDefaultProfile(bool hide, int index, std::wstri
 	profile.HideTaxi = hide;
 	profile.HideGlobalItemSkills = hide;
 	profile.HideSoulCores = hide;
+	profile.HideGrabs = hide;
 	const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
 	for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
 	{
