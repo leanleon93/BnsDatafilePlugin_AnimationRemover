@@ -1,21 +1,27 @@
 # BnS Animation Filter
 
-## A Blade & Soul NEO plugin to hide the skills for selected classes to provide a cleaner screen in combat without hiding party members.
+## A Blade & Soul plugin to hide the skills for selected classes to provide a cleaner screen in combat without hiding party members.
 
 ## Ingame Gui
 
 <img src="./ingame_gui.png" alt="AnimeFilter Ingame GUI" width="800"/>
 
 ## Features
-- Show/hide skills for specific classes.
+- (NEO SERVER) Show/hide skills for specific classes.
+- (LIVE SERVER) Show/hide skills for specific specializations of classes.
 - Preset Profiles
 - Switch profiles during gameplay without loading screens.
-- Can completely hide SoulCores 
 - Does not hide party buffs or party protection skills. (Soulburn, Polarity, Uplift, HMB, Stealth proc.)
-- Does not hide projectile resists by default. Can be hidden in config.
-- Does not hide party relevant Grab/Grapple/Fixate animations by default. Can be hidden in config.
 - Does not hide Assassin taxi flower by default. Can be hidden in config.
 - Does not hide Warlock TD by default. Can be hidden in config.
+
+### NEO Only Features
+- Can completely hide SoulCores in config.
+- Does not hide projectile resists by default. Can be hidden in config.
+- Does not hide party relevant Grab/Grapple/Fixate animations by default. Can be hidden in config.
+
+### LIVE Only Features
+- Does not hide bard tree by default. Can be hidden in config.
 
 ## Installation
 ```
@@ -37,7 +43,7 @@ BNSR/
 [![Watch the demo](https://img.youtube.com/vi/wuWuUMzoFcw/hqdefault.jpg)](https://www.youtube.com/watch?v=wuWuUMzoFcw)
 
 ## Config
-- The config file is located at: `Documents/BNS/animfilter_config.xml`
+- The config file is located at: `Documents/BNS/animfilter_config.xml`/`Documents/BNS/animfilter_config_live.xml`
 - On first launch a default config will be created.
 - You can also check the example config file: [animfilter_config.xml](animfilter_config.xml)
 - You can add multiple profiles for different scenarios
@@ -50,8 +56,9 @@ You can set extra options for a profile.
 - Hide Time Distortion
 - Hide Soulcores
 - Hide Projectile Resists
+- Hide Grab/Grapple/Fixate animations
 ```xml
-<extra_options hideSoulCores="true" hideProjectileResists="true" hideTree="true" hideTaxi="true" hideTD="true" />
+<extra_options hideGrabs="true" hideSoulCores="true" hideProjectileResists="true" hideTree="true" hideTaxi="true" hideTD="true" />
 ```
 
 ## Dependencies
