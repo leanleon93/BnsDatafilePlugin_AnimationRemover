@@ -43,8 +43,9 @@ BNSR/
 [![Watch the demo](https://img.youtube.com/vi/wuWuUMzoFcw/hqdefault.jpg)](https://www.youtube.com/watch?v=wuWuUMzoFcw)
 
 ## Config
-- The config file is located at: `Documents/BNS/animfilter_config.xml`/`Documents/BNS/animfilter_config_live.xml`
+- The config file is located at: `Documents/BNS/animfilter_config.xml` or `Documents/BNS/animfilter_config_live.xml`
 - On first launch a default config will be created.
+- If the Documents directory is not found or is not writable for any reason, the config will silently fall back to `%LOCALAPPDATA%/BnS`
 - You can also check the example config file: [animfilter_config.xml](animfilter_config.xml)
 - You can add multiple profiles for different scenarios
 - The profiles can be edited in-game using the pluginloader gui (insert key)

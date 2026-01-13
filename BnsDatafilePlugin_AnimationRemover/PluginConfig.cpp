@@ -9,6 +9,11 @@
 #include <string>
 #include "AnimFilterConfig.h"
 #include <algorithm>
+#include <filesystem>
+#include <cwctype>
+#include <system_error>
+#include <cstdlib>
+#include <malloc.h>
 
 namespace fs = std::filesystem;
 std::unique_ptr<PluginConfig> g_PluginConfig;
@@ -21,11 +26,20 @@ PluginConfig::PluginConfig()
 void PluginConfig::Initialize()
 {
 	AnimFilterConfig = {};
+	std::filesystem::path configDir = std::filesystem::path(GetConfigDirectory());
+	if (configDir.empty()) {
+		MessageBoxW(nullptr, L"Could not determine a valid configuration directory. The plugin will not save profiles.", L"AnimFilter Fatal Error", MB_OK | MB_ICONWARNING);
+		ConfigPath.clear();
+		return;
+	}
 #ifdef _BNSLIVE
-	ConfigPath = PluginConfig::GetDocumentsDirectory() + "\\BnS\\animfilter_config_live.xml";
+	ConfigPath = configDir / L"BnS" / L"animfilter_config_live.xml";
 #else
-	ConfigPath = PluginConfig::GetDocumentsDirectory() + "\\BnS\\animfilter_config.xml";
+	ConfigPath = configDir / L"BnS" / L"animfilter_config.xml";
 #endif
+	if (!fs::exists(ConfigPath.parent_path())) {
+		fs::create_directories(ConfigPath.parent_path());
+	}
 }
 
 void PluginConfig::CreateDefaultConfigFile()
@@ -169,16 +183,68 @@ void PluginConfig::RemoveCustomSkillId(int profileId, int id)
 	}
 }
 
-std::string PluginConfig::GetDocumentsDirectory() {
-	char* userProfile = nullptr;
-	size_t len = 0;
-	if (_dupenv_s(&userProfile, &len, "USERPROFILE") == 0 && userProfile != nullptr) {
-		std::string documentsDir = std::string(userProfile) + "\\Documents";
-		free(userProfile);
-		return documentsDir;
+fs::path PluginConfig::GetConfigDirectory() {
+	// Helper lambda to get an environment variable as a wide string path
+	auto get_env_path = [](const wchar_t* var) -> fs::path {
+		wchar_t* value = nullptr;
+		size_t len = 0;
+		fs::path result;
+		if (_wdupenv_s(&value, &len, var) == 0 && value != nullptr) {
+			result = fs::path(value);
+			free(value);
+		}
+		return result;
+		};
+
+	// Helper lambda to fallback to LOCALAPPDATA
+	auto fallback_localappdata = [&]() -> fs::path {
+		fs::path localAppDataBnS = get_env_path(L"LOCALAPPDATA");
+		if (localAppDataBnS.parent_path().empty()) {
+			//MessageBoxW(nullptr, L"Could not find LOCALAPPDATA directory.", L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
+			return {};
+		}
+		return localAppDataBnS;
+		};
+
+	fs::path documentsDir = get_env_path(L"USERPROFILE") / L"Documents";
+	if (documentsDir.empty()) {
+		//MessageBoxW(nullptr, L"Could not find Documents directory. Falling back to LOCALAPPDATA.", L"AnimFilter Error", MB_OK | MB_ICONERROR);
+		return fallback_localappdata();
 	}
-	MessageBox(nullptr, L"Could not find Documents directory.", L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
-	return "";
+
+	// Check for OneDrive in the path (case-insensitive)
+	std::wstring docStr = documentsDir.native();
+	std::wstring onedriveStr = L"onedrive";
+	auto it = std::search(
+		docStr.begin(), docStr.end(),
+		onedriveStr.begin(), onedriveStr.end(),
+		[](wchar_t c1, wchar_t c2) { return std::towlower(c1) == std::towlower(c2); }
+	);
+
+	// Fallback if OneDrive detected
+	if (it != docStr.end()) {
+		return fallback_localappdata();
+	}
+
+	// Check if Documents is writeable by attempting to create a temp file
+	fs::path testFile = documentsDir / "BnS" / L".animfilter_write_test";
+	{
+		std::error_code ec;
+		if (!fs::exists(testFile.parent_path())) {
+			fs::create_directories(testFile.parent_path(), ec);
+			if (ec) {
+				//MessageBoxW(nullptr, L"Could not create the BnS config directory in Documents. Falling back to LOCALAPPDATA.", L"AnimFilter Error", MB_OK | MB_ICONERROR);
+				return fallback_localappdata();
+			}
+		}
+		std::wofstream ofs(testFile);
+		if (!ofs) {
+			//MessageBoxW(nullptr, L"Documents directory is not writeable. Falling back to LOCALAPPDATA.", L"AnimFilter Error", MB_OK | MB_ICONERROR);
+			return fallback_localappdata();
+		}
+	}
+	fs::remove(testFile);
+	return documentsDir;
 }
 
 static std::wstring PugiCharPtrToWString(const pugi::char_t* charPtr) {
@@ -291,11 +357,25 @@ void PluginConfig::ReloadFromConfig()
 		CreateDefaultConfigFile();
 	}
 	pugi::xml_document doc;
-	if (pugi::xml_parse_result result = doc.load_file(ConfigPath.string().c_str()); !result) {
+	pugi::xml_parse_result result = doc.load_file(ConfigPath.string().c_str());
+	if (!result) {
 #ifdef _DEBUG
 		std::cerr << "Failed to load AnimFilter config file: " << result.description() << std::endl;
 #endif // _DEBUG
-		MessageBox(nullptr, L"Could not load config file.", L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
+		// rename the bad config for user inspection
+		try {
+			fs::path badPath = ConfigPath;
+			badPath += L".bad";
+			fs::rename(ConfigPath, badPath);
+		}
+		catch (const std::exception&) {
+			// If renaming fails, ignore and proceed to overwrite
+		}
+		MessageBox(nullptr, L"Config file is missing, corrupted, or has invalid format. A new default config will be created.", L"AnimFilter Error", MB_OK | MB_ICONERROR);
+		CreateDefaultConfigFile();
+		result = doc.load_file(ConfigPath.string().c_str());
+	}
+	if (!result) {
 		Loaded = false;
 		return;
 	}
@@ -417,8 +497,23 @@ void PluginConfig::SaveToDisk()
 	decl.append_attribute("version") = "1.0";
 	decl.append_attribute("encoding") = "UTF-8";
 	// Save to file
-	if (!doc.save_file(ConfigPath.string().c_str(), PUGIXML_TEXT("  "))) {
-		MessageBox(nullptr, L"Could not save config file.", L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
+	if (ConfigPath.empty()) {
+		//dont try saving
+		return;
+	}
+	if (!fs::exists(ConfigPath.parent_path())) {
+		fs::create_directories(ConfigPath.parent_path());
+	}
+	std::error_code ec;
+	if (!fs::exists(ConfigPath.parent_path(), ec)) {
+		std::wstring errorMsg = L"Config directory does not exist: " + ConfigPath.parent_path().wstring() +
+			L"\nError code: " + std::to_wstring(ec.value()) + L"\nMessage: " + std::wstring(ec.message().begin(), ec.message().end());
+		MessageBoxW(nullptr, errorMsg.c_str(), L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
+	}
+	else if (!doc.save_file(ConfigPath.string().c_str(), PUGIXML_TEXT("  "))) {
+		std::wstring errorMsg = L"Could not save config file:\n" + ConfigPath.wstring() +
+			L"\nPlease check file permissions or disk space.";
+		MessageBoxW(nullptr, errorMsg.c_str(), L"AnimFilter Fatal Error", MB_OK | MB_ICONERROR);
 	}
 }
 

@@ -26,7 +26,7 @@ private:
 	std::filesystem::path ConfigPath;
 	bool Loaded;
 	AnimFilterConfig AnimFilterConfig;
-	static std::string GetDocumentsDirectory();
+	static std::filesystem::path GetConfigDirectory();
 	void Initialize();
 	void CreateDefaultConfigFile();
 	bool FileExists(const std::string& path);
