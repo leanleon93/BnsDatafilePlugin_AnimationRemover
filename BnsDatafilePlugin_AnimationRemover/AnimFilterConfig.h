@@ -13,6 +13,8 @@ struct AnimFilterConfig {
 		bool HideTaxi = false;
 		bool HideGlobalItemSkills = false;
 		bool HideSoulCores = false;
+		bool HideOthersSoulCores = false;
+		bool HideAllOtherPlayerSkills = false;
 		bool HideGrabs = false;
 		struct EffectOption {
 			unsigned __int64 Key;

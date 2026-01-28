@@ -26,6 +26,8 @@
 #endif
 #include <string>
 #include "plugin_version.h"
+#include "hooks.h"
+#include "xorstr.hpp"
 
 static int g_panelHandle = 0;
 static int g_panelHandle2 = 0;
@@ -504,25 +506,41 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->Spacing();
 
 	// Booleans
+	g_imgui->Columns(2, nullptr, false); // 2 columns for better alignment
+
 #ifndef _BNSLIVE
 	g_imgui->Checkbox("Hide Grab Skills", &profile.HideGrabs);
-	g_imgui->SameLine(0.0f, 10.0f);
+	g_imgui->NextColumn();
 #endif
+
 	g_imgui->Checkbox("Hide Time Distortion", &profile.HideTimeDistortion);
-	g_imgui->SameLine(0.0f, 10.0f);
+	g_imgui->NextColumn();
+
 	g_imgui->Checkbox("Hide Taxi", &profile.HideTaxi);
+	g_imgui->NextColumn();
 
 	g_imgui->Checkbox("Hide Global Item Skills", &profile.HideGlobalItemSkills);
-	g_imgui->SameLine(0.0f, 10.0f);
+	g_imgui->NextColumn();
+
 #ifdef _BNSLIVE
 	g_imgui->Checkbox("Hide Bard Tree", &profile.HideTree);
+	g_imgui->NextColumn();
 #else
-	g_imgui->Checkbox("Hide Soul Cores", &profile.HideSoulCores);
+	g_imgui->Checkbox("Hide all Soul Cores", &profile.HideSoulCores);
+	g_imgui->NextColumn();
+	g_imgui->Checkbox("Hide others Soul Cores", &profile.HideOthersSoulCores);
+	g_imgui->NextColumn();
 #endif
+
+	g_imgui->Checkbox("Hide all Skills from other Players (beta)", &profile.HideAllOtherPlayerSkills);
+	g_imgui->NextColumn();
+
 #ifndef _BNSLIVE
-	g_imgui->SameLine(0.0f, 10.0f);
 	g_imgui->Checkbox("Hide Projectile Resists", &profile.HideProjectileResists);
+	g_imgui->NextColumn();
 #endif
+
+	g_imgui->Columns(1, nullptr, false); // Reset to single column
 	g_imgui->Spacing();
 
 	//Skill options
@@ -697,6 +715,27 @@ static void UiPanel(void* userData) {
 		ReloadSkillShow3();
 	}
 	g_imgui->Spacing();
+	g_imgui->Separator();
+	g_imgui->Spacing();
+	// Section: Char Info
+	//if (g_PluginConfig->getWorld != nullptr) {
+	//	auto* world = g_PluginConfig->getWorld();
+	//	if (world != nullptr && world->_player != nullptr) {
+	//		auto player = g_PluginConfig->getWorld()->_player;
+	//		auto playerCreature = (Creature*)player;
+	//		auto playerName = playerCreature->name.str;
+	//		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Character:");
+	//		g_imgui->SameLineDefault();
+	//		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(playerName).c_str());
+	//		auto playerJob = playerCreature->job;
+	//		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Job:");
+	//		g_imgui->SameLineDefault();
+	//		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(g_SkillIdManager->customJobAbbreviations.at(playerJob)).c_str());
+	//		g_imgui->Spacing();
+	//		g_imgui->Separator();
+	//		g_imgui->Spacing();
+	//	}
+	//}
 
 	// Section: Active Profile
 	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Active Profile:");
@@ -709,8 +748,6 @@ static void UiPanel(void* userData) {
 		g_imgui->SameLineDefault();
 		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
 	}
-	g_imgui->Spacing();
-	g_imgui->Separator();
 	g_imgui->Spacing();
 	// Section: Default Profile
 	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Default Profile:");
@@ -776,7 +813,9 @@ static void UiPanel(void* userData) {
 	}
 }
 
-
+HookFunctionParams hooks[] = {
+	{ xorstr_("48 8B 12 48 8B 01 48 8B 52 08 FF 90 ?? 00 00 00 48 8B D8 48 89 47 24"), -0x33, (void**)&oSkillUse, (void*)hkSkillUse, "oSkillUse" }
+};
 
 static void __fastcall Init(PluginInitParams* params) {
 	if (params && params->registerImGuiPanel && params->unregisterImGuiPanel && params->imgui)
@@ -787,13 +826,19 @@ static void __fastcall Init(PluginInitParams* params) {
 		ImGuiPanelDesc desc = { "Animation Filter", UiPanel, nullptr };
 		g_panelHandle = g_register(&desc, false);
 	}
-
 	if (params && params->dataManager) {
 		g_dataManager = params->dataManager;
 		g_SkillIdManager = std::make_unique<SkillIdManager>(params->dataManager);
 		g_PluginConfig = std::make_unique<PluginConfig>();
 		g_PluginConfig->ReloadFromConfig();
 		g_SkillIdManager->SetupAsync();
+	}
+	if (params && params->getWorld && g_PluginConfig != nullptr) {
+		g_PluginConfig->getWorld = params->getWorld;
+	}
+	if (params && params->registerDetours && params->unregisterDetours) {
+		g_PluginConfig->unregisterDetours = params->unregisterDetours;
+		params->registerDetours(hooks, sizeof(hooks) / sizeof(hooks[0]));
 	}
 }
 
@@ -805,7 +850,10 @@ static void __fastcall Unregister() {
 		g_SkillIdManager->ReapplyEffectFilters();
 		ReloadSkillShow3();
 	}
-
+	if (g_PluginConfig->unregisterDetours) {
+		g_PluginConfig->unregisterDetours(hooks, sizeof(hooks) / sizeof(hooks[0]));
+		g_PluginConfig->unregisterDetours = nullptr;
+	}
 	if (g_unregister && g_panelHandle != 0) {
 		g_unregister(g_panelHandle);
 		g_panelHandle = 0;

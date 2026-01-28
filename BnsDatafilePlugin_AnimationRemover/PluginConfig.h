@@ -1,6 +1,7 @@
 #pragma once
 #include "AnimFilterConfig.h"
 #include <filesystem>
+#include "DatafilePluginsdk.h"
 
 class PluginConfig {
 public:
@@ -22,6 +23,8 @@ public:
 	int GetActiveProfileId();
 	void AddCustomSkillId(int profileId, int id, std::string text);
 	void RemoveCustomSkillId(int profileId, int id);
+	BnsClient_GetWorldFunc getWorld = nullptr;
+	UnregisterDetoursFunc unregisterDetours = nullptr;
 private:
 	std::filesystem::path ConfigPath;
 	bool Loaded;

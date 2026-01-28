@@ -73,6 +73,8 @@ void PluginConfig::CreateDefaultConfigFile()
 		profile.HideTaxi = false;
 		profile.HideGlobalItemSkills = false;
 		profile.HideSoulCores = false;
+		profile.HideOthersSoulCores = false;
+		profile.HideAllOtherPlayerSkills = true;
 		profile.HideGrabs = false;
 		profile.SkillFilters = {};
 		for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
@@ -111,6 +113,8 @@ void PluginConfig::AddHideShowAllDefaultProfile(bool hide, int index, std::wstri
 	profile.HideTaxi = hide;
 	profile.HideGlobalItemSkills = hide;
 	profile.HideSoulCores = hide;
+	profile.HideOthersSoulCores = hide;
+	profile.HideAllOtherPlayerSkills = hide;
 	profile.HideGrabs = hide;
 	const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
 	for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
@@ -281,6 +285,15 @@ static void SetProfiles(pugi::xml_document const& doc, AnimFilterConfig* animFil
 			if (extraoptionsNode.attribute("hideSoulCores") != nullptr) {
 				profile.HideSoulCores = extraoptionsNode.attribute("hideSoulCores").as_bool();
 			}
+			if (extraoptionsNode.attribute("hideOthersSoulCores") != nullptr) {
+				profile.HideOthersSoulCores = extraoptionsNode.attribute("hideOthersSoulCores").as_bool();
+			}
+			if (extraoptionsNode.attribute("hideAllOtherPlayerSkills") != nullptr) {
+				profile.HideAllOtherPlayerSkills = extraoptionsNode.attribute("hideAllOtherPlayerSkills").as_bool();
+			}
+			else {
+				profile.HideAllOtherPlayerSkills = true;
+			}
 			if (extraoptionsNode.attribute("hideGrabs") != nullptr) {
 				profile.HideGrabs = extraoptionsNode.attribute("hideGrabs").as_bool();
 			}
@@ -429,6 +442,8 @@ void PluginConfig::SaveToDisk()
 		extraOptionsNode.append_attribute("hideTaxi") = profile.HideTaxi;
 		extraOptionsNode.append_attribute("hideItemSkills") = profile.HideGlobalItemSkills;
 		extraOptionsNode.append_attribute("hideSoulCores") = profile.HideSoulCores;
+		extraOptionsNode.append_attribute("hideOthersSoulCores") = profile.HideOthersSoulCores;
+		extraOptionsNode.append_attribute("hideAllOtherPlayerSkills") = profile.HideAllOtherPlayerSkills;
 		extraOptionsNode.append_attribute("hideGrabs") = profile.HideGrabs;
 
 		// Text

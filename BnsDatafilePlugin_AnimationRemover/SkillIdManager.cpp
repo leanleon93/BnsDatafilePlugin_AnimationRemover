@@ -789,18 +789,23 @@ static void removeIdsForSpec(std::unordered_set<int>&idsToFilter, std::unordered
 
 void SkillIdManager::ResetIdsToFilter() {
 	idsToFilter.clear();
+	allIdsToFilterFromOtherPlayers.clear();
 	if (!g_PluginConfig->IsLoaded() || !g_PluginConfig->HasActiveProfile())
 		return;
 	auto& activeProfile = g_PluginConfig->GetActiveProfile();
 
 	//iterate over filters
 	for (auto const& jobOption : activeProfile.SkillFilters) {
-		if (jobOption.Name.empty() || !jobOption.IsHideAny()) continue;
+		if (jobOption.Name.empty()) continue;
 		auto jobId = GetJobIdForEnName(jobOption.Name);
 		if (jobId == 0) continue;
 		auto skillIdsForJobRecord = skillIdsForJobMap.find(jobId);
 		if (skillIdsForJobRecord == skillIdsForJobMap.end()) continue;
 		auto& skillIdsForJob = skillIdsForJobRecord->second;
+		addIdsForSpec(allIdsToFilterFromOtherPlayers, skillIdsForJob.SkillIdsForSpec, 1);
+		addIdsForSpec(allIdsToFilterFromOtherPlayers, skillIdsForJob.SkillIdsForSpec, 2);
+		addIdsForSpec(allIdsToFilterFromOtherPlayers, skillIdsForJob.SkillIdsForSpec, 3);
+		if (!jobOption.IsHideAny()) continue;
 		//add ids to filter if hide
 		if (jobOption.HideSpec1) {
 			addIdsForSpec(idsToFilter, skillIdsForJob.SkillIdsForSpec, 1);
@@ -808,6 +813,7 @@ void SkillIdManager::ResetIdsToFilter() {
 		if (jobOption.HideSpec2) {
 			addIdsForSpec(idsToFilter, skillIdsForJob.SkillIdsForSpec, 2);
 		}
+
 		if (jobOption.HideSpec3) {
 			addIdsForSpec(idsToFilter, skillIdsForJob.SkillIdsForSpec, 3);
 		}
@@ -830,13 +836,16 @@ void SkillIdManager::ResetIdsToFilter() {
 	if (activeProfile.HideGlobalItemSkills) {
 		idsToFilter.insert(globalItemSkillIds.begin(), globalItemSkillIds.end());
 	}
+	allIdsToFilterFromOtherPlayers.insert(globalItemSkillIds.begin(), globalItemSkillIds.end());
 
 	//remove all soulcores 
 	if (activeProfile.HideSoulCores) {
 		idsToFilter.insert(soulCoreSkills.begin(), soulCoreSkills.end());
 	}
+	allIdsToFilterFromOtherPlayers.insert(soulCoreSkills.begin(), soulCoreSkills.end());
 
 	RemoveSpecialExclusionIds(idsToFilter, activeProfile);
+	RemoveSpecialExclusionIds(allIdsToFilterFromOtherPlayers, activeProfile);
 
 	if (activeProfile.HideTaxi) {
 		taxiExclusionIds = {};
@@ -846,6 +855,7 @@ void SkillIdManager::ResetIdsToFilter() {
 	}
 	for (const auto& [skillId, text] : activeProfile.CustomSkillIdFilters) {
 		idsToFilter.insert(skillId);
+		allIdsToFilterFromOtherPlayers.insert(skillId);
 	}
 	ResetEffectIdsToFilter();
 }
@@ -1032,6 +1042,11 @@ const std::unordered_set<int>& SkillIdManager::GetIdsToFilter() const {
 	return idsToFilter;
 }
 
+const std::unordered_set<int>& SkillIdManager::GetAllIdsToFilterFromOtherPlayers() const
+{
+	return allIdsToFilterFromOtherPlayers;
+}
+
 void SkillIdManager::RestoreEffects() {
 	if (this->dataManager == nullptr) {
 		return;
@@ -1101,6 +1116,11 @@ void SkillIdManager::RestoreEffects() {
 	}
 	effectRestoreList.clear();
 	effectSwapRestoreList.clear();
+}
+
+std::unordered_set<int>& SkillIdManager::GetSoulcoreSkillIds()
+{
+	return soulCoreSkills;
 }
 
 std::unordered_set<int> SkillIdManager::GetAllFixedExclusionSkillIds()

@@ -22,6 +22,7 @@
 #include "Data.h"
 #include <atomic>
 #include "AnimFilterConfig.h"
+#include <vector>
 
 class SkillIdManager {
 	struct SkillIdsForJob {
@@ -51,6 +52,7 @@ public:
 	void RemoveSpecialExclusionIds(std::unordered_set<int>& idSet, const AnimFilterConfig::AnimFilterProfile& activeProfile);
 	void RemoveSpecialExclusionEffectIds(std::unordered_set<unsigned __int64>& effectIdSet, const AnimFilterConfig::AnimFilterProfile& activeProfile);
 	const std::unordered_set<int>& GetIdsToFilter() const;
+	const std::unordered_set<int>& GetAllIdsToFilterFromOtherPlayers() const;
 	const std::unordered_set<int>& GetTaxiSkillIds() const;
 	const std::unordered_map<__int32, __int16>& GetTaxiExclusionIdVariations() const;
 	Data::DataManager* GetDataManager();
@@ -125,6 +127,7 @@ public:
 		{ 16, false}
 	};
 	void RestoreEffects();
+	std::unordered_set<int>& GetSoulcoreSkillIds();
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;
@@ -356,6 +359,7 @@ private:
 	std::unordered_map<int, std::unordered_set<unsigned __int64>> exclusionEffectIds;
 	std::unordered_set<int> GetAllSkillIdsFromJobMap();
 	std::unordered_set<int> idsToFilter;
+	std::unordered_set<int> allIdsToFilterFromOtherPlayers;
 	std::unordered_set<unsigned __int64> effectIdsToFilter;
 	std::unordered_set<int> taxiExclusionIds;
 	void ResetEffectIdsToFilter();
