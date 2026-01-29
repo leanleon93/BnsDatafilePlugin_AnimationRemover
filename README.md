@@ -5,8 +5,8 @@
 
 ## 🚀 **Major Update 3.0: Auto Detect Mode & Enhanced Skill Hiding!** 🚀
 
-> **Auto Detect Mode now automatically identifies your class and hides all skills from other players—including those of the same class—for a cleaner, less cluttered combat view.**  
-> _Essential party utilities and buffs (Soulburn, Polarity, Uplift, HMB, Stealth, Projectile Resists, Grabs) remain visible._  
+> **Auto Detect Mode now automatically identifies your class and hides all skills and Soul Cores from other players—including those of the same class—for a cleaner, less cluttered combat view.**  
+> _Essential party utilities and buffs (Soulburn, Polarity, Uplift, HMB, Stealth, Projectile Resists, Grabs, Bard Tree etc.) remain visible._  
 > **This is Enabled by default.** You can deactivate it anytime via the in-game UI.
 
 ---
