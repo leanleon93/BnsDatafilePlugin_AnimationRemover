@@ -1277,6 +1277,28 @@ void SkillIdManager::ReapplyEffectFilters() {
 	RemoveEffects();
 }
 
+void SkillIdManager::ReloadSkillShow3() {
+	if (reloadRequired) {
+		auto table = GetTable(dataManager, L"skillshow3");
+		if (table != nullptr) {
+			//if (g_PluginConfig->GetAnimFilterConfig().ExperimentalMemoryLoading) {
+			//	table->__vftable->SetUseLowMemory(table, false);
+			//}
+			auto it = table->__vftable->createInnerIter(table);
+			//cycle the cache
+			do {
+				if (!it->_vtptr->IsValid(it)) continue;
+#ifdef _BNSEU
+				if (auto record = (BnsTables::EU::skillshow3_Record*)it->_vtptr->Ptr(it); record == nullptr) continue;
+#elif _BNSKR
+				if (auto record = (BnsTables::KR::skillshow3_Record*)it->_vtptr->Ptr(it); record == nullptr) continue;
+#endif
+			} while (it->_vtptr->Next(it));
+			reloadRequired = false;
+		}
+	}
+}
+
 bool SkillIdManager::IsCriticalFail() const {
 	return CriticalFail;
 }

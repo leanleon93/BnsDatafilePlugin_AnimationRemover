@@ -69,10 +69,12 @@ struct AnimFilterConfig {
 			}
 			return SkillOption();
 		}
+		signed char DetectedJobId = 0;
 	};
 	bool Enabled;
-	bool ExperimentalMemoryLoading;
+	bool AutoJobDetection;
 	std::unordered_map<int, AnimFilterProfile> Profiles;
 	AnimFilterProfile ActiveProfile;
+	AnimFilterProfile AutoJobProfile;
 	int DefaultProfileId;
 };

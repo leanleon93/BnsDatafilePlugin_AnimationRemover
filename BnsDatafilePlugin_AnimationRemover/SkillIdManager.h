@@ -71,6 +71,7 @@ public:
 	};
 	void SetDataManager(Data::DataManager* ptr);
 	void ReapplyEffectFilters();
+	void ReloadSkillShow3();
 	char GetJobIdForEnName(std::wstring const& enName);
 	const std::unordered_map<std::wstring, char> jobNameFallbackMap = {
 	{ L"Blade Master", 1 },
@@ -128,6 +129,7 @@ public:
 	};
 	void RestoreEffects();
 	std::unordered_set<int>& GetSoulcoreSkillIds();
+	bool reloadRequired = false;
 private:
 	__int16 skillshowTableId;
 	Data::DataManager* dataManager;

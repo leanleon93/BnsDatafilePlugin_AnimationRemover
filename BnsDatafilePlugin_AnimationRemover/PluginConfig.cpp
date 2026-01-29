@@ -14,6 +14,7 @@
 #include <system_error>
 #include <cstdlib>
 #include <malloc.h>
+#include "Data.h"
 
 namespace fs = std::filesystem;
 std::unique_ptr<PluginConfig> g_PluginConfig;
@@ -46,7 +47,7 @@ void PluginConfig::CreateDefaultConfigFile()
 {
 	AnimFilterConfig = {};
 	AnimFilterConfig.Enabled = true;
-	AnimFilterConfig.ExperimentalMemoryLoading = false;
+	AnimFilterConfig.AutoJobDetection = true;
 	AnimFilterConfig.DefaultProfileId = 1;
 	const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
 	std::vector<std::pair<std::wstring, char>> sortedJobNames(jobNameMap.begin(), jobNameMap.end());
@@ -395,8 +396,11 @@ void PluginConfig::ReloadFromConfig()
 	if (pugi::xml_node enabledNode = doc.child("config").child("enabled"); enabledNode) {
 		AnimFilterConfig.Enabled = enabledNode.attribute("value").as_bool();
 	}
-	if (pugi::xml_node experimentalNode = doc.child("config").child("experimental-feature"); experimentalNode) {
-		AnimFilterConfig.ExperimentalMemoryLoading = experimentalNode.attribute("value").as_bool();
+	if (pugi::xml_node experimentalNode = doc.child("config").child("auto-job-detection"); experimentalNode) {
+		AnimFilterConfig.AutoJobDetection = experimentalNode.attribute("value").as_bool();
+	}
+	else {
+		AnimFilterConfig.AutoJobDetection = true; //migrate old configs
 	}
 	if (pugi::xml_node defaultProfileNode = doc.child("config").child("default-profile"); defaultProfileNode) {
 		AnimFilterConfig.DefaultProfileId = defaultProfileNode.attribute("id").as_int();
@@ -422,6 +426,11 @@ void PluginConfig::SaveToDisk()
 	// Enabled
 	xml_node enabledNode = configNode.append_child("enabled");
 	enabledNode.append_attribute("value") = AnimFilterConfig.Enabled;
+
+	//Auto Job Detection
+	xml_node experimentalNode = configNode.append_child("auto-job-detection");
+	experimentalNode.append_attribute("value") = AnimFilterConfig.AutoJobDetection;
+
 
 	//Default Profile Id
 	xml_node defaultProfileNode = configNode.append_child("default-profile");
@@ -545,8 +554,65 @@ void PluginConfig::SetActiveFilter(int profileId)
 	}
 }
 
-const AnimFilterConfig::AnimFilterProfile& PluginConfig::GetActiveProfile() const
+void PluginConfig::ResetAutoJobProfile() {
+	AnimFilterConfig.AutoJobProfile.DetectedJobId = 0;
+}
+
+void PluginConfig::SetAutoJobProfile()
 {
+	if (g_PluginConfig->getWorld != nullptr) {
+		auto* world = g_PluginConfig->getWorld();
+		if (world != nullptr && world->_player != nullptr) {
+			auto player = g_PluginConfig->getWorld()->_player;
+			auto playerCreature = (Creature*)player;
+			if (playerCreature->job != 0 && playerCreature->job != AnimFilterConfig.AutoJobProfile.DetectedJobId) {
+				auto jobId = playerCreature->job;
+				const auto& jobNameMap = g_SkillIdManager->jobNameFallbackMap;
+				AnimFilterConfig::AnimFilterProfile profile;
+				profile.Name = std::to_string(999);
+				profile.Text = L"Auto";
+				profile.HideTree = false;
+				profile.HideProjectileResists = false;
+				profile.HideTimeDistortion = false;
+				profile.HideTaxi = false;
+				profile.HideGlobalItemSkills = false;
+				profile.HideSoulCores = false;
+				profile.HideOthersSoulCores = false;
+				profile.HideAllOtherPlayerSkills = true;
+				profile.HideGrabs = false;
+				profile.SkillFilters = {};
+				for (const auto& [jobNameInner, jobIdInner] : jobNameMap)
+				{
+					bool hide = (jobIdInner != jobId);
+					AnimFilterConfig::AnimFilterProfile::SkillOption skillOption;
+					skillOption.Name = jobNameInner;
+					skillOption.Job = jobIdInner;
+					skillOption.HideSpec1 = hide;
+					skillOption.HideSpec2 = hide;
+					skillOption.HideSpec3 = hide;
+					profile.SkillFilters.push_back(skillOption);
+				}
+				profile.DetectedJobId = jobId;
+				AnimFilterConfig.AutoJobProfile = profile;
+				g_SkillIdManager->ResetIdsToFilter();
+				g_SkillIdManager->ReapplyEffectFilters();
+				g_SkillIdManager->ReloadSkillShow3();
+			}
+		}
+	}
+}
+
+const AnimFilterConfig::AnimFilterProfile& PluginConfig::GetAutoJobProfile()
+{
+	SetAutoJobProfile();
+	return this->AnimFilterConfig.AutoJobProfile;
+}
+
+const AnimFilterConfig::AnimFilterProfile& PluginConfig::GetActiveProfile()
+{
+	if (this->AnimFilterConfig.AutoJobDetection) {
+		return GetAutoJobProfile();
+	}
 	return this->AnimFilterConfig.ActiveProfile;
 }
 
@@ -571,10 +637,18 @@ bool PluginConfig::IsLoaded() const
 
 bool PluginConfig::HasActiveProfile() const
 {
-	return !AnimFilterConfig.ActiveProfile.Name.empty();
+	return AnimFilterConfig.AutoJobDetection || !AnimFilterConfig.ActiveProfile.Name.empty();
 }
 
 void PluginConfig::SetEnabled(bool enabled)
 {
 	AnimFilterConfig.Enabled = enabled;
+}
+
+bool PluginConfig::GetAutoJobDetection() const {
+	return AnimFilterConfig.AutoJobDetection;
+}
+
+void PluginConfig::SetAutoJobDetection(bool enabled) {
+	AnimFilterConfig.AutoJobDetection = enabled;
 }

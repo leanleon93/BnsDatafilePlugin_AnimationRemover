@@ -302,7 +302,6 @@ static PluginReturnData __fastcall Phantomsword3Detour(PluginExecuteParams* para
 	return { (DrEl*)&emptyRecord };
 }
 
-static bool reloadRequired = false;
 static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params) {
 #ifdef _BNSEU
 	PLUGIN_DETOUR_GUARD(params, BnsTables::EU::TableNames::GetTableVersion);
@@ -334,7 +333,7 @@ static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params)
 		auto record = (BnsTables::KR::skillshow3_Record*)recordBase;
 #endif
 		SwapAnimationsForRecords(record, animSwapRecord);
-		reloadRequired = true;
+		g_SkillIdManager->reloadRequired = true;
 		return { recordBase };
 	}
 #endif
@@ -353,37 +352,15 @@ static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params)
 	auto record = (BnsTables::KR::skillshow3_Record*)recordBase;
 #endif
 	RemoveAnimationsForRecord(record);
-	reloadRequired = true;
+	g_SkillIdManager->reloadRequired = true;
 	return { recordBase };
-}
-
-static void ReloadSkillShow3() {
-	if (reloadRequired) {
-		auto table = GetTable(g_dataManager, L"skillshow3");
-		if (table != nullptr) {
-			//if (g_PluginConfig->GetAnimFilterConfig().ExperimentalMemoryLoading) {
-			//	table->__vftable->SetUseLowMemory(table, false);
-			//}
-			auto it = table->__vftable->createInnerIter(table);
-			//cycle the cache
-			do {
-				if (!it->_vtptr->IsValid(it)) continue;
-#ifdef _BNSEU
-				if (auto record = (BnsTables::EU::skillshow3_Record*)it->_vtptr->Ptr(it); record == nullptr) continue;
-#elif _BNSKR
-				if (auto record = (BnsTables::KR::skillshow3_Record*)it->_vtptr->Ptr(it); record == nullptr) continue;
-#endif
-			} while (it->_vtptr->Next(it));
-			reloadRequired = false;
-		}
-	}
 }
 
 static void ReloadConfig() {
 	g_PluginConfig->ReloadFromConfig();
 	g_SkillIdManager->ResetIdsToFilter();
 	g_SkillIdManager->ReapplyEffectFilters();
-	ReloadSkillShow3();
+	g_SkillIdManager->ReloadSkillShow3();
 	//maybe print text chat message
 }
 
@@ -391,7 +368,7 @@ static void SetProfile(int profileId) {
 	g_PluginConfig->SetActiveFilter(profileId);
 	g_SkillIdManager->ResetIdsToFilter();
 	g_SkillIdManager->ReapplyEffectFilters();
-	ReloadSkillShow3();
+	g_SkillIdManager->ReloadSkillShow3();
 	if (!g_PluginConfig->AnimFilterEnabled()) return;
 	//maybe print text chat message
 }
@@ -532,7 +509,7 @@ static void ProfileEditorUiPanel(void* userData) {
 	g_imgui->NextColumn();
 #endif
 
-	g_imgui->Checkbox("Hide all Skills from other Players (beta)", &profile.HideAllOtherPlayerSkills);
+	g_imgui->Checkbox("Hide all Skills from other Players", &profile.HideAllOtherPlayerSkills);
 	g_imgui->NextColumn();
 
 #ifndef _BNSLIVE
@@ -666,7 +643,7 @@ static void ProfileEditorUiPanel(void* userData) {
 		g_PluginConfig->SetActiveFilter(selectedProfileId);
 		g_SkillIdManager->ResetIdsToFilter();
 		g_SkillIdManager->ReapplyEffectFilters();
-		ReloadSkillShow3();
+		g_SkillIdManager->ReloadSkillShow3();
 		saveFeedback = true;
 		saveFeedbackFrames = FEEDBACK_DISPLAY_FRAMES;
 	}
@@ -681,7 +658,7 @@ static void ProfileEditorUiPanel(void* userData) {
 		g_PluginConfig->SetActiveFilter(profile0);
 		g_SkillIdManager->ResetIdsToFilter();
 		g_SkillIdManager->ReapplyEffectFilters();
-		ReloadSkillShow3();
+		g_SkillIdManager->ReloadSkillShow3();
 		selectedProfileId = -1;
 		profileListDirty = true;
 	}
@@ -712,102 +689,128 @@ static void UiPanel(void* userData) {
 		g_PluginConfig->SetEnabled(enabled);
 		g_SkillIdManager->ResetIdsToFilter();
 		g_SkillIdManager->ReapplyEffectFilters();
-		ReloadSkillShow3();
+		g_SkillIdManager->ReloadSkillShow3();
 	}
 	g_imgui->Spacing();
 	g_imgui->Separator();
 	g_imgui->Spacing();
 	// Section: Char Info
-	//if (g_PluginConfig->getWorld != nullptr) {
-	//	auto* world = g_PluginConfig->getWorld();
-	//	if (world != nullptr && world->_player != nullptr) {
-	//		auto player = g_PluginConfig->getWorld()->_player;
-	//		auto playerCreature = (Creature*)player;
-	//		auto playerName = playerCreature->name.str;
-	//		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Character:");
-	//		g_imgui->SameLineDefault();
-	//		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(playerName).c_str());
-	//		auto playerJob = playerCreature->job;
-	//		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Job:");
-	//		g_imgui->SameLineDefault();
-	//		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(g_SkillIdManager->customJobAbbreviations.at(playerJob)).c_str());
-	//		g_imgui->Spacing();
-	//		g_imgui->Separator();
-	//		g_imgui->Spacing();
-	//	}
-	//}
-
-	// Section: Active Profile
-	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Active Profile:");
-	if (g_PluginConfig->HasActiveProfile()) {
-		const auto& profile = g_PluginConfig->GetActiveProfile();
-		g_imgui->SameLineDefault();
-		g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(profile.Text).c_str());
-	}
-	else {
-		g_imgui->SameLineDefault();
-		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
-	}
-	g_imgui->Spacing();
-	// Section: Default Profile
-	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Default Profile:");
-	const auto& defaultProfileName = g_PluginConfig->GetDefaultProfileName();
-	if (!defaultProfileName.empty()) {
-
-		g_imgui->SameLineDefault();
-		g_imgui->TextColored(1.0f, 0.65f, 0.0f, 1.0f, WStringToString(defaultProfileName).c_str());
-	}
-	else {
-		g_imgui->SameLineDefault();
-		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
-	}
-	g_imgui->TextColored(0.6f, 0.6f, 0.6f, 1.0f, "This is used on game start.");
-	g_imgui->Spacing();
-
-	if (g_PluginConfig->HasActiveProfile()) {
-		const auto profileId = g_PluginConfig->GetActiveProfileId();
-		if (g_imgui->SmallButton("Set active profile as default profile")) {
-			g_PluginConfig->SetDefaultProfile(profileId);
-			g_PluginConfig->SaveToDisk();
+	g_imgui->Text("Current Character Info:");
+	g_imgui->Indent(10.0f);
+	bool charFound = false;
+	if (g_PluginConfig->getWorld != nullptr) {
+		auto* world = g_PluginConfig->getWorld();
+		if (world != nullptr && world->_player != nullptr) {
+			auto player = g_PluginConfig->getWorld()->_player;
+			auto playerCreature = (Creature*)player;
+			//auto playerName = playerCreature->name.str;
+			//g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Name:");
+			//g_imgui->SameLineDefault();
+			//g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(playerName).c_str());
+			auto playerJob = playerCreature->job;
+			g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Job:");
+			g_imgui->SameLineDefault();
+			g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(g_SkillIdManager->customJobAbbreviations.at(playerJob)).c_str());
+			charFound = true;
 		}
 	}
+	if (!charFound) {
+		g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "Character not logged in or in loading screen.");
+	}
+
+	bool autoJobDetection = g_PluginConfig->GetAutoJobDetection();
+	if (g_imgui->Checkbox("Use auto class detection", &autoJobDetection)) {
+		g_PluginConfig->SetAutoJobDetection(autoJobDetection);
+		g_PluginConfig->SaveToDisk();
+		g_PluginConfig->ResetAutoJobProfile();
+		ReloadConfig();
+	}
+	g_imgui->TextColored(0.6f, 0.6f, 0.6f, 1.0f, "Automatically hide all other player skills based on the class of your current character.");
+	g_imgui->Unindent(10.0f);
 
 	g_imgui->Spacing();
 	g_imgui->Separator();
 	g_imgui->Spacing();
-	// Section: Select Profile
-	g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Select Profile:");
-	g_imgui->Spacing();
-
-	// Use columns for profile buttons
-	int numProfiles = static_cast<int>(g_PluginConfig->GetAnimFilterConfig().Profiles.size());
-	int columns = numProfiles > 4 ? 3 : numProfiles; // 3 columns if many profiles
-	g_imgui->Columns(columns, nullptr, false);
-	for (const auto& profile : g_PluginConfig->GetAnimFilterConfig().Profiles) {
-		if (g_imgui->CustomButton(WStringToString(profile.second.Text).c_str(), -FLT_MIN, 0)) {
-			SetProfile(profile.first);
+	static bool profileEditorOpen = false;
+	if (autoJobDetection) {
+		g_imgui->TextColored(1.0f, 0.65f, 0.0f, 1.0f, "Classic Profiles are disabled if auto class detection is enabled.");
+		g_imgui->Spacing();
+	}
+	else {
+		g_imgui->Text("Profiles:");
+		g_imgui->Indent(10.0f);
+		// Section: Active Profile
+		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Active Profile:");
+		if (g_PluginConfig->HasActiveProfile()) {
+			const auto& profile = g_PluginConfig->GetActiveProfile();
+			g_imgui->SameLineDefault();
+			g_imgui->TextColored(0.0f, 1.0f, 0.0f, 1.0f, WStringToString(profile.Text).c_str());
 		}
-		g_imgui->NextColumn();
-	}
-	g_imgui->Columns(1, nullptr, false);
-	g_imgui->Spacing();
+		else {
+			g_imgui->SameLineDefault();
+			g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
+		}
+		g_imgui->Spacing();
+		// Section: Default Profile
+		g_imgui->TextColored(0.7f, 0.7f, 1.0f, 1.0f, "Default Profile:");
+		const auto& defaultProfileName = g_PluginConfig->GetDefaultProfileName();
+		if (!defaultProfileName.empty()) {
 
-	// Section: Actions
-	g_imgui->Separator();
-	g_imgui->Spacing();
+			g_imgui->SameLineDefault();
+			g_imgui->TextColored(1.0f, 0.65f, 0.0f, 1.0f, WStringToString(defaultProfileName).c_str());
+		}
+		else {
+			g_imgui->SameLineDefault();
+			g_imgui->TextColored(1.0f, 0.0f, 0.0f, 1.0f, "None");
+		}
+		g_imgui->TextColored(0.6f, 0.6f, 0.6f, 1.0f, "This is used on game start.");
+		g_imgui->Spacing();
 
-	static bool window_open = false;
-	if (g_imgui->CustomButton("Open Profile Editor", 180, 0)) {
-		window_open = true;
+		if (g_PluginConfig->HasActiveProfile()) {
+			const auto profileId = g_PluginConfig->GetActiveProfileId();
+			if (g_imgui->SmallButton("Set active profile as default profile")) {
+				g_PluginConfig->SetDefaultProfile(profileId);
+				g_PluginConfig->SaveToDisk();
+			}
+		}
+		g_imgui->Unindent(10.0f);
+
+		g_imgui->Spacing();
+		g_imgui->Separator();
+		g_imgui->Spacing();
+		// Section: Select Profile
+		g_imgui->Text("Select Profile:");
+		g_imgui->Spacing();
+
+		// Use columns for profile buttons
+		int numProfiles = static_cast<int>(g_PluginConfig->GetAnimFilterConfig().Profiles.size());
+		int columns = numProfiles > 4 ? 3 : numProfiles; // 3 columns if many profiles
+		g_imgui->Columns(columns, nullptr, false);
+		for (const auto& profile : g_PluginConfig->GetAnimFilterConfig().Profiles) {
+			if (g_imgui->CustomButton(WStringToString(profile.second.Text).c_str(), -FLT_MIN, 0)) {
+				SetProfile(profile.first);
+			}
+			g_imgui->NextColumn();
+		}
+		g_imgui->Columns(1, nullptr, false);
+		g_imgui->Spacing();
+
+		// Section: Actions
+		g_imgui->Separator();
+		g_imgui->Spacing();
+
+		if (g_imgui->CustomButton("Open Profile Editor", 180, 0)) {
+			profileEditorOpen = true;
+		}
+		g_imgui->SameLineDefault();
 	}
-	g_imgui->SameLineDefault();
 	if (g_imgui->CustomButton("Reload Config from file", 180, 0)) {
 		ReloadConfig();
 	}
 
 	// Profile Editor Window
-	if (window_open) {
-		g_imgui->Begin("Animation Filter Profile Editor", &window_open, 0);
+	if (profileEditorOpen) {
+		g_imgui->Begin("Animation Filter Profile Editor", &profileEditorOpen, 0);
 		ProfileEditorUiPanel(nullptr);
 		g_imgui->End();
 	}
@@ -848,7 +851,7 @@ static void __fastcall Unregister() {
 		g_PluginConfig->SetEnabled(false);
 		g_SkillIdManager->ResetIdsToFilter();
 		g_SkillIdManager->ReapplyEffectFilters();
-		ReloadSkillShow3();
+		g_SkillIdManager->ReloadSkillShow3();
 	}
 	if (g_PluginConfig->unregisterDetours) {
 		g_PluginConfig->unregisterDetours(hooks, sizeof(hooks) / sizeof(hooks[0]));

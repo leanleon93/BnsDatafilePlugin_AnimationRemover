@@ -1,9 +1,21 @@
 # BnS Animation Filter
-
 ## A Blade & Soul plugin to hide the skills for selected classes to provide a cleaner screen in combat without hiding party members.
 
-## Ingame Gui
+---
 
+## 🚀 **Major Update 3.0: Auto Detect Mode & Enhanced Skill Hiding!** 🚀
+
+> **Auto Detect Mode now automatically identifies your class and hides all skills from other players—including those of the same class—for a cleaner, less cluttered combat view.**  
+> _Essential party utilities and buffs (Soulburn, Polarity, Uplift, HMB, Stealth, Projectile Resists, Grabs) remain visible._  
+> **This is Enabled by default.** You can deactivate it anytime via the in-game UI.
+
+---
+
+## Ingame Gui
+### Auto detect Mode
+<img src="./ingame_gui_auto.png" alt="AnimeFilter Ingame GUI" width="800"/>
+
+### Classic Mode
 <img src="./ingame_gui.png" alt="AnimeFilter Ingame GUI" width="800"/>
 
 ## Features
