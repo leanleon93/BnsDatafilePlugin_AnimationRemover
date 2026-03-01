@@ -136,7 +136,9 @@ private:
 	std::atomic<bool> SetupComplete;
 	bool CriticalFail;
 	std::unordered_set<int> GetAllFixedExclusionSkillIds();
+
 	const std::vector<int> idExclusionList = {
+#ifdef _BNSLIVE
 		66104,
 		66105,
 		66106,
@@ -146,9 +148,11 @@ private:
 		66023,
 		66024,
 		66050
+#endif
 	};
 
 	const std::unordered_set<int> grabExclusionIds = {
+#ifndef _BNSLIVE
 		//kfm grapple
 		114395,
 		114396,
@@ -270,9 +274,11 @@ private:
 		250062,
 		250063,
 		250064
+#endif
 	};
 
 	const std::unordered_set<int> projectileResistExclusionIds = {
+#ifndef _BNSLIVE
 		//do not hide party projectile resists
 		//sum petal storm
 		155571,
@@ -293,9 +299,11 @@ private:
 		135270,
 		135271,
 		135272
+#endif // !_BNSLIVE
 	};
 
 	const std::unordered_set<int> bardTreeExclusionIds = {
+#ifdef _BNSLIVE
 		242500,
 		242501,
 		242502,
@@ -304,37 +312,40 @@ private:
 		242505,
 		242506,
 		242507
+#endif
 	};
 
 	const std::unordered_set<int> wlTDExclusionIds = {
+#ifdef _BNSLIVE
 		171200,
 		173000,
+#else
 		171168,
 		171169
+#endif
 	};
 
 	const std::unordered_set<int> defaultTaxiExclusionIds = {
+#ifdef _BNSLIVE
 		141190,
 		142190,
 		143290,
+#else
 		142270,
 		142271,
 		142272,
 		142280,
 		142281,
 		142282
+#endif
 	};
+
+
 
 	const std::unordered_map<__int32, __int16> taxiExclusionIdVariations = {
 		{ 141190, 9 },
 		{ 142190, 9 },
 		{ 143290, 5 },
-		{ 142270, 1 },
-		{ 142271, 1 },
-		{ 142272, 1 },
-		{ 142280, 1 },
-		{ 142281, 1 },
-		{ 142282, 1 }
 	};
 
 	const std::unordered_map<char, EffectIdsForJob> fixedTargetEffectIds = {

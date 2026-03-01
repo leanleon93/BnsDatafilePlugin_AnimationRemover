@@ -339,11 +339,14 @@ static PluginReturnData __fastcall Skillshow3Detour(PluginExecuteParams* params)
 #endif
 
 	if (!ids.contains(skillId)) return {};
+#ifdef _BNSLIVE
+	// For taxi skills on live, we only want to remove the animations if the variation matches, to avoid breaking non-taxi variations of the same skill
 	if (const auto& taxiIds = g_SkillIdManager->GetTaxiSkillIds(); taxiIds.contains(skillId)) {
 		const auto& taxiIdVariations = g_SkillIdManager->GetTaxiExclusionIdVariations();
 		const auto skillshowKey = SkillIdManager::SkillShow3KeyHelper::ExtractKey(params->key);
 		if (taxiIdVariations.at(skillId) == skillshowKey.variation_id) return {};
 	}
+#endif
 	auto recordBase = params->oFind(params->table, params->key);
 	if (recordBase == nullptr) return {};
 #ifdef _BNSEU

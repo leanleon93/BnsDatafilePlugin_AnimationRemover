@@ -846,13 +846,15 @@ void SkillIdManager::ResetIdsToFilter() {
 
 	RemoveSpecialExclusionIds(idsToFilter, activeProfile);
 	RemoveSpecialExclusionIds(allIdsToFilterFromOtherPlayers, activeProfile);
-
+#ifdef _BNSLIVE
+	//LIVE SIN TAXI HAS THIS SPECIAL TREATMENT BECAUSE THE TAXI SKILL IS BASED ON VARIATION_ID INSTEAD OF SKILL_ID
 	if (activeProfile.HideTaxi) {
 		taxiExclusionIds = {};
 	}
 	else {
 		taxiExclusionIds = defaultTaxiExclusionIds;
 	}
+#endif
 	for (const auto& [skillId, text] : activeProfile.CustomSkillIdFilters) {
 		idsToFilter.insert(skillId);
 		allIdsToFilterFromOtherPlayers.insert(skillId);
@@ -895,6 +897,16 @@ void SkillIdManager::RemoveSpecialExclusionEffectIds(std::unordered_set<unsigned
 			}
 		}
 	}
+#ifndef _BNSLIVE
+	//remove taxi ids from idsToFilter if not HideTaxi
+	if (!activeProfile.HideTaxi) {
+		for (auto id : defaultTaxiExclusionIds) {
+			for (auto effectId : exclusionEffectIds[id]) {
+				effectIdSet.erase(effectId);
+			}
+		}
+	}
+#endif // !_BNSLIVE
 }
 
 void SkillIdManager::RemoveSpecialExclusionIds(std::unordered_set<int> &idSet, const AnimFilterConfig::AnimFilterProfile & activeProfile)
@@ -922,6 +934,13 @@ void SkillIdManager::RemoveSpecialExclusionIds(std::unordered_set<int> &idSet, c
 	//remove wlTDExclusionIds from idsToFilter if not HideTimeDistortion
 	if (!activeProfile.HideTimeDistortion) {
 		for (auto id : wlTDExclusionIds) {
+			idSet.erase(id);
+		}
+	}
+
+	//remove taxi ids from idsToFilter if not HideTaxi
+	if (!activeProfile.HideTaxi) {
+		for (auto id : defaultTaxiExclusionIds) {
 			idSet.erase(id);
 		}
 	}
