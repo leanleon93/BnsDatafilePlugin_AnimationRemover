@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		.github\workflows\release-build.yml = .github\workflows\release-build.yml
 		.github\workflows\update-submodules-periodically.yml = .github\workflows\update-submodules-periodically.yml
+		UpdateSubmodules.bat = UpdateSubmodules.bat
 	EndProjectSection
 EndProject
 Global
