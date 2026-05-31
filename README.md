@@ -1,3 +1,11 @@
+**⚠️ Notice**
+
+This project has been discontinued and is no longer actively maintained.
+No new features, bug fixes, or support will be provided.
+I consider this project and its architecture a failure.
+
+---
+
 # BnS Animation Filter
 ## A Blade & Soul plugin to hide the skills for selected classes to provide a cleaner screen in combat without hiding party members.
 
