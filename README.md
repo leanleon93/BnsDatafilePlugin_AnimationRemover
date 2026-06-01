@@ -2,7 +2,8 @@
 
 This project has been discontinued and is no longer actively maintained.
 No new features, bug fixes, or support will be provided.
-I consider this project and its architecture a failure.
+I consider this project and its architecture a failure.  
+To be clear, the auto update pipeline will keep this alive as long as possible.
 
 ---
 
