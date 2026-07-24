@@ -7,6 +7,11 @@ on:
         required: false
         type: string
         default: "patch"
+      ref:
+        description: "Commit SHA or ref to build"
+        required: false
+        type: string
+        default: ""
       solution_file_path:
         required: false
         type: string
@@ -47,6 +52,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # A scheduled caller's github.sha is the commit from before it
+          # updated and pushed the submodule pointers. Build the pushed SHA.
+          ref: ${{ inputs.ref || github.sha }}
           submodules: recursive
           fetch-depth: 0
           

@@ -34,3 +34,4 @@ jobs:
     uses: ./.github/workflows/release-build.yml
     with:
       bump: ${{ github.event.inputs.bump || 'patch' }}
+      ref: ${{ github.sha }}

@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       updated: ${{ steps.update_submodules.outputs.updated }}
+      commit_sha: ${{ steps.update_submodules.outputs.commit_sha }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -38,6 +39,7 @@ jobs:
             git commit -a -m "Update submodules to the latest version"
             git push origin master
             echo "updated=true" >> $GITHUB_OUTPUT
+            echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           else
             echo "No submodule updates detected."
             echo "updated=false" >> $GITHUB_OUTPUT
@@ -49,3 +51,4 @@ jobs:
     needs: update-submodules
     with:
       bump: "patch"
+      ref: ${{ needs.update-submodules.outputs.commit_sha }}
